@@ -7,6 +7,8 @@
 #include <fstream>
 #include <glm/vec3.hpp> // glm::vec3
 #include "../src/Bbox.cpp"
+#include <stdio.h>
+#include <sstream>
 
 /** 
 * @class Model
@@ -28,11 +30,11 @@ class Model {
 		/**
 		* @brief  Function that read the information of vertex
 		*         from String and parse to Array 
-		* @param  String with information of vertex
+		* @param  File with information of vertex
 		* @return Vector of float with size 7 
 		*          [pos(x,y,z) normal(x,y,z) color_index]
 		*/
-		float * readVertex (std::string input);
+		float * readVertex (FILE *input);
 
 		/**
 		* @brief  Function that read the information of face normal
@@ -40,7 +42,7 @@ class Model {
 		* @param  String with information of face normal
 		* @return Vector of float with normal of face
 		*/
-		float *readFaceNormal (std::string input);
+		float *readFaceNormal (FILE *input);
 
 		/**
 		* @brief  Function that get the array with vertex information
@@ -60,7 +62,7 @@ class Model {
 		* @param triangleN Int that define the triangle number
 		* @return void
 		**/
-		void parseVertex(float data[], int triangleN);
+		void parseNormal(float data[], int triangleN);
 
 		int numberTriangles;
 		int numberMaterials;
