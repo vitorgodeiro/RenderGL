@@ -4,35 +4,9 @@ float *Model::getVertexPositions(){ return this->vertexPositions; }
 float *Model::getVertexNormal(){ return this->vertexNormal; }
 float *Model::getVertexColorIndex(){ return this->vertexColorIndex; }
 
-void Model::setVertexPositions(float vertex[]){
-	for (int i =0; i < getNumVertex()*3; i++){
-		vertex[i] = this->vertexPositions[i];
-	}	
-}
-
 int Model::getNumVertex(){
 	return numberTriangles*3;
 }
-void Model::parseNormal(float data[], int triangleN){
-	this->faceNormal[3*triangleN] = data[0];
-	this->faceNormal[3*triangleN + 1] = data[1];
-	this->faceNormal[3*triangleN + 2] = data[2];
-}
-
-void Model::parseVertex(float data[], int vertexN, int triangleN){
-	int posUpdate = 3*vertexN + triangleN*9;
-	this->vertexPositions[posUpdate] = data[0];
-	this->vertexPositions[posUpdate + 1] = data[1];
-	this->vertexPositions[posUpdate + 2] = data[2];
-	this->box.update(data[0], data[1], data[2]);
-
-	this->vertexNormal[posUpdate] = data[3];
-	this->vertexNormal[posUpdate + 1] = data[4];
-	this->vertexNormal[posUpdate + 2] = data[5];
-
-	this->vertexColorIndex[vertexN + 3*triangleN] = data[6];
-}
-
 
 Model::Model(std::string file){
 	char ch;
@@ -64,10 +38,26 @@ Model::Model(std::string file){
 	while(ch!= '\n') {fscanf(fp, "%c", &ch);}
 
 	for (int nTriangleActual = 0; nTriangleActual < this->numberTriangles; nTriangleActual++){
-        parseVertex(readVertex(fp), 0, nTriangleActual);
-        parseVertex(readVertex(fp), 1, nTriangleActual);
-        parseVertex(readVertex(fp), 2, nTriangleActual);
-        parseNormal(readFaceNormal(fp), nTriangleActual);
+		char a;
+        int posUpdate = nTriangleActual*9;
+        fscanf(fp, "v%c %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
+														&(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
+														&(vertexColorIndex[nTriangleActual*3]));	
+		this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
+
+        posUpdate += 3;
+		fscanf(fp, "v%c %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
+														&(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
+														&(vertexColorIndex[nTriangleActual*3]));
+		this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
+
+        posUpdate += 3;
+		fscanf(fp, "v%c %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
+														&(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
+														&(vertexColorIndex[nTriangleActual*3]));
+		this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
+
+		fscanf(fp, "face normal %f %f %f\n", &(faceNormal[nTriangleActual*3]), &(faceNormal[nTriangleActual*3 + 1]), &(faceNormal[nTriangleActual + 2]));
 	}
 }
 
@@ -75,27 +65,4 @@ Model::~Model(){
 	delete []this->vertexPositions;
 	delete []this->vertexNormal;
 	delete []this->vertexColorIndex;
-}
-
-std::vector<std::string> Model::splitString(const char *str,char delimiter = ' '){
-	std::vector<std::string> tokens;
-   	std::string token;
-	std::istringstream tokenStream(str);
-	while (std::getline(tokenStream, token, delimiter)){ tokens.push_back(token); }
-    return tokens;
-}
-
-float * Model::readVertex (FILE *input){
-    float *output = new float[7];
-	char a;
-    fscanf(input, "v%c %f %f %f %f %f %f %f\n", &a, &(output[0]), &(output[1]), &(output[2]),
-											&(output[3]), &(output[4]), &(output[5]),
-											&(output[6]));	
-    return output;
-}
-
-float * Model::readFaceNormal (FILE *input){
-    float *output = new float[3];
-    fscanf(input, "face normal %f %f %f\n", &(output[0]), &(output[1]), &(output[2]));
-    return output;
 }

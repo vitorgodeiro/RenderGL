@@ -28,6 +28,13 @@ void display( void ){
 	glFlush();
 }
 
+void setVertexPositions(float vertex[], float * vertex_, int numVertex){
+	for (int i =0; i < numVertex*3; i++){
+		vertex[i] = vertex_[i];
+	}	
+}
+
+
 void init (std::string pathModel){
 	ShaderInfo  shaders[] = { { GL_VERTEX_SHADER, "shader/triangles.vert" },
         					  { GL_FRAGMENT_SHADER, "shader/triangles.frag" },
@@ -39,7 +46,7 @@ void init (std::string pathModel){
 	mesh = new Model(pathModel);
 
 	GLfloat vertex_positions[mesh->getNumVertex()*3];
-	mesh->setVertexPositions(vertex_positions);
+	setVertexPositions(vertex_positions, mesh->getVertexPositions(), mesh->getNumVertex());
     GLfloat vertex_colors[] = { 1.00f, 0.00f, 0.00f,  
 						  		0.00f, 1.00f, 0.00f, 
 						  		0.00f, 0.00f, 1.00f };
