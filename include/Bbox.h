@@ -19,7 +19,9 @@ class Bbox {
 		Bbox();
 		std::string toString();
 		void update (float x, float y, float z);
-
+		float *getMin(){return new float[3]{xMin, yMin, zMin};}
+		float *getMax(){return new float[3]{xMax, yMax, zMax};}
+		float *getCenter();
 		
 };
 #endif

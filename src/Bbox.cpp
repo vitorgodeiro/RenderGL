@@ -21,3 +21,12 @@ void Bbox::update (float x, float y, float z){
 	if (z < zMin) {zMin = z;}
 	if (z > zMax) {zMax = z;}
 }
+
+float* Bbox::getCenter(){
+    float *center = new float[3];
+    center[0] = (xMin + xMax)/2.0f;
+    center[1] = (yMin + yMax)/2.0f;
+    center[2] = (zMin + zMax)/2.0f;
+    return center;
+}
+

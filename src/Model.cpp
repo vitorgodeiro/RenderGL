@@ -1,16 +1,14 @@
 #include "../include/Model.h"
 
-std::string Model::toString(){
-	std::cout << "TRIANGULOS ==" << numberTriangles << std::endl;
-	for (int i = 0; i < getNumVertex(); i++){
-		std::cout << "I=" << i << "***" <<  this->vertexPositions[i*3] << " " << this->vertexPositions[i*3 + 1] << " " << this->vertexPositions[i*3+2] << "\n";
-	}
-	return "";
-}
-
 float *Model::getVertexPositions(){ return this->vertexPositions; }
 float *Model::getVertexNormal(){ return this->vertexNormal; }
 float *Model::getVertexColorIndex(){ return this->vertexColorIndex; }
+
+void Model::setVertexPositions(float vertex[]){
+	for (int i =0; i < getNumVertex()*3; i++){
+		vertex[i] = this->vertexPositions[i];
+	}	
+}
 
 int Model::getNumVertex(){
 	return numberTriangles*3;
@@ -69,7 +67,7 @@ Model::Model(std::string file){
 }
 
 Model::~Model(){
-	//delete []this->vertexPositions;
+	delete []this->vertexPositions;
 	delete []this->vertexNormal;
 	delete []this->vertexColorIndex;
 }
@@ -85,14 +83,14 @@ std::vector<std::string> Model::splitString(const char *str,char delimiter = ' '
 float * Model::readVertex (FILE *input){
     float *output = new float[7];
 	char a;
-    fscanf(input, "v%c %f %f %f %f %f %f %d\n", &a, &(output[0]), &(output[1]), &(output[2]),
+    fscanf(input, "v%c %f %f %f %f %f %f %f\n", &a, &(output[0]), &(output[1]), &(output[2]),
 											&(output[3]), &(output[4]), &(output[5]),
 											&(output[6]));	
     return output;
 }
 
 float * Model::readFaceNormal (FILE *input){
-    float output[3];
+    float *output = new float[3];
     fscanf(input, "face normal %f %f %f\n", &(output[0]), &(output[1]), &(output[2]));
     return output;
 }

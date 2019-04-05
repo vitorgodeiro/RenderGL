@@ -82,11 +82,12 @@ class Model {
 
 		Model(std::string file);
 		~Model();
-		std::string toString();
 		Bbox box;
 		float *getVertexPositions();
 		float *getVertexNormal();
 		float *getVertexColorIndex();
+		
+		void setVertexPositions(float vertex[]);
 		int getNumVertex();
 };
 #endif
