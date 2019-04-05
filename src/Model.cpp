@@ -44,7 +44,7 @@ Model::Model(std::string file){
 	this->vertexPositions = new float[9*this->numberTriangles];
 	this->vertexNormal = new float[9*this->numberTriangles];
 	this->vertexColorIndex = new float[3*this->numberTriangles];
-	this->faceNormal = new float[this->numberTriangles];
+	this->faceNormal = new float[3*this->numberTriangles];
 	
 	fscanf(fp,"Material count = %d\n", &numberMaterials);
 	for(int materialCount = numberMaterials; 0 < materialCount; materialCount--){
@@ -62,7 +62,7 @@ Model::Model(std::string file){
         parseVertex(readVertex(fp), 0, nTriangleActual);
         parseVertex(readVertex(fp), 1, nTriangleActual);
         parseVertex(readVertex(fp), 2, nTriangleActual);
-        readFaceNormal(fp);
+        parseNormal(readFaceNormal(fp), nTriangleActual);
 	}
 }
 
