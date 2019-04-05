@@ -47,12 +47,17 @@ Model::Model(std::string file){
 	this->faceNormal = new float[3*this->numberTriangles];
 	
 	fscanf(fp,"Material count = %d\n", &numberMaterials);
+
+	this->ambientColor = new float[3*this->numberMaterials];
+	this->diffuseColor = new float[3*this->numberMaterials];
+	this->specularColor = new float[3*this->numberMaterials];
+	this->materialShine = new float[this->numberMaterials];
+
 	for(int materialCount = numberMaterials; 0 < materialCount; materialCount--){
-		float aux;
-		fscanf(fp, "ambient color %f %f %f\n", &aux, &aux, &aux);
-		fscanf(fp, "diffuse color %f %f %f\n", &aux, &aux, &aux);
-		fscanf(fp, "specular color %f %f %f\n", &aux, &aux, &aux);
-		fscanf(fp, "material shine %f\n", &aux);
+		fscanf(fp, "ambient color %f %f %f\n", &ambientColor[3*materialCount], &ambientColor[3*materialCount + 1], &ambientColor[3*materialCount + 2]);
+		fscanf(fp, "diffuse color %f %f %f\n", &diffuseColor[3*materialCount], &diffuseColor[3*materialCount + 1], &diffuseColor[3*materialCount + 2]);
+		fscanf(fp, "specular color %f %f %f\n", &specularColor[3*materialCount], &specularColor[3*materialCount + 1], &specularColor[3*materialCount + 2]);
+		fscanf(fp, "material shine %f\n", &materialShine[materialCount]);
 	}
 
 	fscanf(fp, "%c", &ch);
