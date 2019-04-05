@@ -1,6 +1,6 @@
 #include "include/vgl.h"
 #include "src/LoadShaders.cpp"
-#include "src/Model.cpp"
+#include "src/Mesh.cpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,7 +11,7 @@
 
 GLuint vao[1];
 GLuint vbo[1];
-Model *mesh;
+Mesh *mesh;
 int width = 800;
 int height = 600;
 
@@ -35,7 +35,7 @@ void setVertexPositions(float vertex[], float * vertex_, int numVertex){
 }
 
 
-void init (std::string pathModel){
+void init (std::string pathMesh){
 	ShaderInfo  shaders[] = { { GL_VERTEX_SHADER, "shader/triangles.vert" },
         					  { GL_FRAGMENT_SHADER, "shader/triangles.frag" },
 						      { GL_NONE, NULL } };
@@ -43,7 +43,7 @@ void init (std::string pathModel){
 	GLuint program = LoadShaders(shaders);
 	glUseProgram(program);
 
-	mesh = new Model(pathModel);
+	mesh = new Mesh(pathMesh);
 
 	GLfloat vertex_positions[mesh->getNumVertex()*3];
 	setVertexPositions(vertex_positions, mesh->getVertexPositions(), mesh->getNumVertex());

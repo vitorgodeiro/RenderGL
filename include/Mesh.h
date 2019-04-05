@@ -1,5 +1,5 @@
-#ifndef __MODEL_H__
-#define __MODEL_H__
+#ifndef __Mesh_H__
+#define __Mesh_H__
 
 #include <iostream>
 #include <string>
@@ -11,12 +11,11 @@
 #include <sstream>
 
 /** 
-* @class Model
+* @class Mesh
 * @brief The class that describe and have 
-*		 information of Model
+*		 information of Mesh
 */
-class Model {
-
+class Mesh {
 	private:
 		int numberTriangles;
 		int numberMaterials;
@@ -32,8 +31,8 @@ class Model {
 		float *materialShine;
 		
 	public:
-		Model(std::string file);
-		~Model();
+		Mesh(std::string file);
+		~Mesh();
 		Bbox box;
 
 		float *getVertexPositions();

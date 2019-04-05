@@ -1,14 +1,14 @@
-#include "../include/Model.h"
+#include "../include/Mesh.h"
 
-float *Model::getVertexPositions(){ return this->vertexPositions; }
-float *Model::getVertexNormal(){ return this->vertexNormal; }
-float *Model::getVertexColorIndex(){ return this->vertexColorIndex; }
+float *Mesh::getVertexPositions(){ return this->vertexPositions; }
+float *Mesh::getVertexNormal(){ return this->vertexNormal; }
+float *Mesh::getVertexColorIndex(){ return this->vertexColorIndex; }
 
-int Model::getNumVertex(){
+int Mesh::getNumVertex(){
 	return numberTriangles*3;
 }
 
-Model::Model(std::string file){
+Mesh::Mesh(std::string file){
 	char ch;
 	FILE* fp = fopen(file.c_str(),"r");
 	if (fp==NULL) { std::cout << "ERROR: unable to open " << file << std::endl; exit(1); }
@@ -61,7 +61,7 @@ Model::Model(std::string file){
 	}
 }
 
-Model::~Model(){
+Mesh::~Mesh(){
 	delete []this->vertexPositions;
 	delete []this->vertexNormal;
 	delete []this->vertexColorIndex;
