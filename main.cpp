@@ -16,6 +16,9 @@ void setVertexPositions(float vertex[], float * vertex_, int numVertex){
 	}	
 }
 
+#define THETA 0.0174533f
+#define COSTHETA float(cos(THETA))
+#define SINTHETA float(sin(THETA))
 
 GLuint vao[1];
 GLuint vbo[1];
@@ -45,7 +48,7 @@ int typeFrontFace = GL_CCW;
 glm::vec3 eye;
 glm::vec3 lookDir;
 glm::vec3 up ;
-glm::vec3 mRight;
+glm::vec3 right;
 void display( void ){
 	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -57,15 +60,10 @@ void display( void ){
 
 }
 
-
-
 void updateMVP(void){
-	std::cout << glm::to_string(eye) << std::endl;
-	std::cout << glm::to_string(lookDir) << std::endl;
-	std::cout << glm::to_string(eye+lookDir) << std::endl;
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
-	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);//glm::frustum(-r, r, -r, r, zNear, zFar);
+	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);
 	view = glm::lookAt( eye, eye + lookDir, up);
 	mvp = proj*view*model;
 	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -78,9 +76,7 @@ void init (std::string pathMesh){
 	
 	GLuint program = LoadShaders(shaders);
 	glUseProgram(program);
-
 	mesh = new Mesh(pathMesh);
-
 	GLfloat vertex_positions[mesh->getNumVertex()*3];
 	setVertexPositions(vertex_positions, mesh->getVertexPositions(), mesh->getNumVertex());
     GLfloat vertex_colors[] = { 1.00f, 0.00f, 0.00f,  
@@ -106,17 +102,15 @@ void init (std::string pathMesh){
 	center = mesh->box.getCenter();
 	float *max = mesh->box.getMax();
 	float *min = mesh->box.getMin();
-	r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
-	//r = sqrt((pow((max[0]-center[0]), 2) + pow((max[1]-center[1]), 2) + pow((max[2]-center[2]), 2)));
+	r = std::sqrt(std::pow((max[0]-min[0]), 2) + std::pow((max[1]-min[1]), 2)+std::pow((max[2]-min[2]), 2));
 	fDistance =  r/tan( 30 * PI / 180.0f );
-
 	zNear = fDistance - r;
 	zFar = fDistance + r;
 	
 	eye = glm::vec3(0.0f, 0.0f, fDistance);
 	lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
 	up = glm::vec3(0,1,0);
-	mRight = glm::vec3(1.0f ,0.0f, 0.0f);
+	right = glm::vec3(1.0f ,0.0f, 0.0f);
 	uniMVP = glGetUniformLocation(program, "mvp");
 	updateMVP();
 	uniColor = glGetUniformLocation(program, "color");
@@ -193,13 +187,16 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;
 		case 'r' :
 		case 'R' : {
- 			//r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
+			float *max = mesh->box.getMax();
+			float *min = mesh->box.getMin();
+ 			r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
 			fDistance =  r/tan( 30 * PI / 180.0f );
 			zNear = fDistance - r;
 			zFar = fDistance + r;
 			eye = glm::vec3(0.0f, 0.0f, fDistance);
 			lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
 			up = glm::vec3(0,1,0);
+			right = glm::vec3(1.0f ,0.0f, 0.0f);
 			updateMVP();
 			break;}	
 				
@@ -213,33 +210,110 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 			type = GL_TRIANGLES;
 			break;
+/////// Roll (z)
+		case 'u' :
+		case 'U' : {
+			glm::vec3 u = right, v = up;
+			right = u*COSTHETA + v*SINTHETA;
+			up = -u*SINTHETA + v*COSTHETA;
+			updateMVP();
+			break;}
+		case 'j' :
+		case 'J' : {
+			glm::vec3 u = right, v = up;
+			right = u*COSTHETA + -v*SINTHETA;
+			up = u*SINTHETA + v*COSTHETA;
+			updateMVP();
+			break;}
+/////////// Yaw (y)
+		case 'h' :
+		case 'H' : {
+			glm::vec3 u = right, n = lookDir;
+      		right = u*COSTHETA + n*SINTHETA;
+			lookDir = -u*SINTHETA + n*COSTHETA;
+			updateMVP();
+			break;
+			}
+		case 'k' :
+		case 'K' : {
+			glm::vec3 u = right, n = lookDir;
+      		right = u*COSTHETA + -n*SINTHETA;
+			lookDir = u*SINTHETA + n*COSTHETA;
+			updateMVP();
+			break;
+			}
+/////////// Pitch (x)
+		case 'l' :
+		case 'L' :{
+			glm::vec3 v = up, n = lookDir;
+      		up = v*COSTHETA + n*SINTHETA;
+			lookDir = -v*SINTHETA + n*COSTHETA;
+			updateMVP();
+			break;
+			}
+		case 'o' :
+		case 'O' :{
+			glm::vec3 v = up, n = lookDir;
+      		up = v*COSTHETA + -n*SINTHETA;
+			lookDir = v*SINTHETA + n*COSTHETA;
+			updateMVP();
+			break;
+			}
+//
 		case '1' :
-			std:: cout << "Translate Pitch : " << -step << std::endl;	
+			std:: cout << "Translate Pitch Center : " << -step << std::endl;	
 			eye += lookDir*step;
-			lookDir -= glm::vec3(0.0f, 0.0f, step);
 			updateMVP();
 			break;	
 		case '2' :
-			std:: cout << "Translate Yaw : " << -step << std::endl;	
+			std:: cout << "Translate Yaw Center : " << -step << std::endl;	
 			eye -= up*step;
+			lookDir = glm::normalize(-eye);
+			up = glm::normalize(glm::cross(right, lookDir));
 			updateMVP();
 			break;	
 		case '3' :
-			std:: cout << "Translate Pitch : " << step << std::endl;	
+			std:: cout << "Translate Pitch Center : " << step << std::endl;	
 			eye -= lookDir*step;
 			updateMVP();
 			break;	
 		case '4' :{
-			std:: cout << "Translate Roll : " << -step << std::endl;
-			eye -= mRight*step;
+			std:: cout << "Translate Roll Center : " << -step << std::endl;
+			eye -= right*step;
+			lookDir = glm::normalize(-eye);
+			right = glm::normalize(glm::cross(lookDir, up));
 			updateMVP();
 			break;}
 		case '6' :
-			std:: cout << "Translate Roll : " << step << std::endl;
-			eye += mRight*step;
+			std:: cout << "Translate Roll Center : " << step << std::endl;
+			eye += right*step;
+			lookDir = glm::normalize(-eye);
+			right = glm::normalize(glm::cross(lookDir, up));
 			updateMVP();
 			break;
 		case '8' :
+			std:: cout << "Translate Yaw Center : " << step << std::endl;	
+			eye += up*step;
+			lookDir = glm::normalize(-eye);
+			up = glm::normalize(glm::cross(right, lookDir));
+			updateMVP();
+			break;
+		case ';' :
+			std:: cout << "Translate Yaw : " << -step << std::endl;	
+			eye -= up*step;
+			updateMVP();
+			break;	
+		case ',' :{
+			std:: cout << "Translate Roll : " << -step << std::endl;
+			eye -= right*step;
+			updateMVP();
+			break;}
+		case '.' :
+			std:: cout << "Translate Roll : " << step << std::endl;
+			eye += right*step;
+			updateMVP();
+			break;
+		case '/' :
 			std:: cout << "Translate Yaw : " << step << std::endl;	
 			eye += up*step;
 			updateMVP();

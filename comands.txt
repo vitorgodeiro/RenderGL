@@ -9,4 +9,7 @@
 'd' or 'D' for disable Back-facing culling
 'q' or 'Q' for quit
 'r' or 'R' reset
-'1', '4', '8', '6', '3' translate the camera
+'1', '4', '8', '6', '3' translate the camera in center object
+'u', 'U', 'j', 'J' rotate Roll
+'h', 'H', 'k', 'K' rotate Yaw
+'l', 'L', 'o', 'O' rotate Pitch

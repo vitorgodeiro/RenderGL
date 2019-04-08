@@ -7,8 +7,8 @@ std::string Bbox::toString(){
 }
 
 Bbox::Bbox(){
-  	xMin = yMin = zMin = std::numeric_limits<float>::max();
-	xMax = yMax = zMax =  std::numeric_limits<float>::min();
+  	xMin = yMin = zMin = std::numeric_limits<float>::infinity();
+	xMax = yMax = zMax =  -std::numeric_limits<float>::infinity();
 }
 
 void Bbox::update (float x, float y, float z){
@@ -17,7 +17,7 @@ void Bbox::update (float x, float y, float z){
 
 	if (y < yMin) {yMin = y;}
 	if (y > yMax) {yMax = y;}
-
+	
 	if (z < zMin) {zMin = z;}
 	if (z > zMax) {zMax = z;}
 }
