@@ -29,7 +29,7 @@ float fDistance;
 float *center = new float[3];
 
 
-float step = 5.0f;
+float step = 1.0f;
 
 GLint uniMVP;
 glm::mat4 mvp;
@@ -65,7 +65,7 @@ void updateMVP(void){
 	std::cout << glm::to_string(eye+lookDir) << std::endl;
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
-	proj = glm::frustum(-r, r, -r, r, zNear, zFar);
+	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);//glm::frustum(-r, r, -r, r, zNear, zFar);
 	view = glm::lookAt( eye, eye + lookDir, up);
 	mvp = proj*view*model;
 	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -104,8 +104,9 @@ void init (std::string pathMesh){
 	
 
 	center = mesh->box.getCenter();
-	//float *max = mesh->box.getMax();
-	r = std::max(std::max(center[0], center[1]), center[2]);
+	float *max = mesh->box.getMax();
+	float *min = mesh->box.getMin();
+	r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
 	//r = sqrt((pow((max[0]-center[0]), 2) + pow((max[1]-center[1]), 2) + pow((max[2]-center[2]), 2)));
 	fDistance =  r/tan( 30 * PI / 180.0f );
 

@@ -24,6 +24,7 @@ void Bbox::update (float x, float y, float z){
 
 float* Bbox::getCenter(){
     float *center = new float[3];
+	std::cout << "Xmin and Xmax =" << xMin << " " << xMax << std::endl;
     center[0] = (xMin + xMax)/2.0f;
     center[1] = (yMin + yMax)/2.0f;
     center[2] = (zMin + zMax)/2.0f;
