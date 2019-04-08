@@ -42,9 +42,9 @@ int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
 
 //camera 
-glm::vec3 eye = glm::vec3(0.0, 0.0, 0.0);
-glm::vec3 cameraCenter = glm::vec3(0.0, 0.0, 0.0);
-glm::vec3 up = glm::vec3(0,1,0);
+glm::vec3 eye;
+glm::vec3 lookDir;
+glm::vec3 up ;
 
 void display( void ){
 	
@@ -58,8 +58,15 @@ void display( void ){
 }
 
 
+
 void updateMVP(void){
-	view = glm::lookAt( eye, cameraCenter, up);
+	std::cout << glm::to_string(eye) << std::endl;
+	std::cout << glm::to_string(lookDir) << std::endl;
+	std::cout << glm::to_string(eye+lookDir) << std::endl;
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
+	proj = glm::frustum(-r, r, -r, r, zNear, zFar);
+	view = glm::lookAt( eye, eye + lookDir, up);
 	mvp = proj*view*model;
 	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
 }
@@ -106,12 +113,9 @@ void init (std::string pathMesh){
 	zFar = fDistance + r;
 	
 	eye = glm::vec3(0.0f, 0.0f, fDistance);
-	cameraCenter = glm::vec3(0.0f, 0.0f, 0.0f);
+	lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
 	up = glm::vec3(0,1,0);
 
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
-	proj = glm::frustum(-r, r, -r, r, zNear, zFar);
 	uniMVP = glGetUniformLocation(program, "mvp");
 	updateMVP();
 	uniColor = glGetUniformLocation(program, "color");
@@ -188,6 +192,18 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 		case 'Q' : 
 			exit(0);
 			break;
+		case 'r' :
+		case 'R' : {
+ 			r = std::max(std::max(center[0], center[1]), center[2]);
+			fDistance =  r/tan( 30 * PI / 180.0f );
+			zNear = fDistance - r;
+			zFar = fDistance + r;
+			eye = glm::vec3(0.0f, 0.0f, fDistance);
+			lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
+			up = glm::vec3(0,1,0);	
+			updateMVP();
+			break;}	
+				
 		case 't' :
 		case 'T' : 
 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -201,37 +217,32 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 		case '1' :
 			std:: cout << "Translate Pitch : " << -step << std::endl;	
 			eye -= glm::vec3(0.0f, 0.0f, step);
-			cameraCenter -= glm::vec3(0.0f, 0.0f, step);
+			lookDir -= glm::vec3(0.0f, 0.0f, step);
 			updateMVP();
 			break;	
 		case '2' :
 			std:: cout << "Translate Yaw : " << -step << std::endl;	
 			eye -= glm::vec3(0.0f, step, 0.0f);
-			cameraCenter -= glm::vec3(0.0f, step, 0.0f);
 			updateMVP();
 			break;	
 		case '3' :
 			std:: cout << "Translate Pitch : " << step << std::endl;	
 			eye += glm::vec3(0.0f, 0.0f, step);
-			cameraCenter += glm::vec3(0.0f, 0.0f, step);
 			updateMVP();
 			break;	
 		case '4' :{
 			std:: cout << "Translate Roll : " << -step << std::endl;
 			eye -= glm::vec3(step, 0.0f, 0.0f);
-			cameraCenter -= glm::vec3(step, 0.0f, 0.0f);
 			updateMVP();
 			break;}
 		case '6' :
 			std:: cout << "Translate Roll : " << step << std::endl;
 			eye += glm::vec3(step, 0.0f, 0.0f);
-			cameraCenter += glm::vec3(step, 0.0f, 0.0f);
 			updateMVP();
 			break;
 		case '8' :
 			std:: cout << "Translate Yaw : " << step << std::endl;	
 			eye += glm::vec3(0.0f, step, 0.0f);
-			cameraCenter += glm::vec3(0.0f, step, 0.0f);
 			updateMVP();
 			break;
 			
