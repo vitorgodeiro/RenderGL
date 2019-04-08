@@ -45,7 +45,7 @@ int typeFrontFace = GL_CCW;
 glm::vec3 eye;
 glm::vec3 lookDir;
 glm::vec3 up ;
-
+glm::vec3 mRight;
 void display( void ){
 	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -116,7 +116,7 @@ void init (std::string pathMesh){
 	eye = glm::vec3(0.0f, 0.0f, fDistance);
 	lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
 	up = glm::vec3(0,1,0);
-
+	mRight = glm::vec3(1.0f ,0.0f, 0.0f);
 	uniMVP = glGetUniformLocation(program, "mvp");
 	updateMVP();
 	uniColor = glGetUniformLocation(program, "color");
@@ -173,7 +173,6 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			std::cout << "Enter the new value of Far Clipping Planes:" << std::endl;
 			std::cin >> zFar;
 			std::cout << "The actual valor of Far Clipping Planes: " <<  zFar << std::endl;			
-			proj = glm::frustum(-r, r, -r, r, zNear, zFar);
 			updateMVP();
 			break;}
 		case 'n' :
@@ -182,7 +181,6 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			std::cout << "Enter the new value of Near Clipping Planes:" << std::endl;
 			std::cin >> zNear;
 			std::cout << "The actual valor of Near Clipping Planes: " <<  zNear << std::endl;			
-			proj = glm::frustum(-r, r, -r, r, zNear, zFar);
 			updateMVP();
 			break;}
 		case 'p' :
@@ -217,33 +215,33 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;
 		case '1' :
 			std:: cout << "Translate Pitch : " << -step << std::endl;	
-			eye -= glm::vec3(0.0f, 0.0f, step);
+			eye += lookDir*step;
 			lookDir -= glm::vec3(0.0f, 0.0f, step);
 			updateMVP();
 			break;	
 		case '2' :
 			std:: cout << "Translate Yaw : " << -step << std::endl;	
-			eye -= glm::vec3(0.0f, step, 0.0f);
+			eye -= up*step;
 			updateMVP();
 			break;	
 		case '3' :
 			std:: cout << "Translate Pitch : " << step << std::endl;	
-			eye += glm::vec3(0.0f, 0.0f, step);
+			eye -= lookDir*step;
 			updateMVP();
 			break;	
 		case '4' :{
 			std:: cout << "Translate Roll : " << -step << std::endl;
-			eye -= glm::vec3(step, 0.0f, 0.0f);
+			eye -= mRight*step;
 			updateMVP();
 			break;}
 		case '6' :
 			std:: cout << "Translate Roll : " << step << std::endl;
-			eye += glm::vec3(step, 0.0f, 0.0f);
+			eye += mRight*step;
 			updateMVP();
 			break;
 		case '8' :
 			std:: cout << "Translate Yaw : " << step << std::endl;	
-			eye += glm::vec3(0.0f, step, 0.0f);
+			eye += up*step;
 			updateMVP();
 			break;
 			
