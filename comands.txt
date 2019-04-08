@@ -8,3 +8,4 @@
 'e' or 'E' for enable Back-facing culling
 'd' or 'D' for disable Back-facing culling
 'q' or 'Q' for quit
+'1', '4', '8', '6', '3' translate the camera

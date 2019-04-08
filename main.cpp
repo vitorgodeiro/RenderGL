@@ -28,6 +28,9 @@ float r;
 float fDistance;
 float *center = new float[3];
 
+
+float step = 5.0f;
+
 GLint uniMVP;
 glm::mat4 mvp;
 GLint uniColor;
@@ -37,6 +40,11 @@ glm::mat4 model, view, proj;
 int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
+
+//camera 
+glm::vec3 eye = glm::vec3(0.0, 0.0, 0.0);
+glm::vec3 cameraCenter = glm::vec3(0.0, 0.0, 0.0);
+glm::vec3 up = glm::vec3(0,1,0);
 
 void display( void ){
 	
@@ -51,6 +59,7 @@ void display( void ){
 
 
 void updateMVP(void){
+	view = glm::lookAt( eye, cameraCenter, up);
 	mvp = proj*view*model;
 	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
 }
@@ -95,10 +104,13 @@ void init (std::string pathMesh){
 
 	zNear = fDistance - r;
 	zFar = fDistance + r;
+	
+	eye = glm::vec3(0.0f, 0.0f, fDistance);
+	cameraCenter = glm::vec3(0.0f, 0.0f, 0.0f);
+	up = glm::vec3(0,1,0);
 
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
-	view = glm::lookAt( glm::vec3(0.0f, 0.0f, fDistance), glm::vec3(0.0f ,0.0f, 0.0f), glm::vec3(0,1,0));
 	proj = glm::frustum(-r, r, -r, r, zNear, zFar);
 	uniMVP = glGetUniformLocation(program, "mvp");
 	updateMVP();
@@ -186,6 +198,43 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 			type = GL_TRIANGLES;
 			break;
+		case '1' :
+			std:: cout << "Translate Pitch : " << -step << std::endl;	
+			eye -= glm::vec3(0.0f, 0.0f, step);
+			cameraCenter -= glm::vec3(0.0f, 0.0f, step);
+			updateMVP();
+			break;	
+		case '2' :
+			std:: cout << "Translate Yaw : " << -step << std::endl;	
+			eye -= glm::vec3(0.0f, step, 0.0f);
+			cameraCenter -= glm::vec3(0.0f, step, 0.0f);
+			updateMVP();
+			break;	
+		case '3' :
+			std:: cout << "Translate Pitch : " << step << std::endl;	
+			eye += glm::vec3(0.0f, 0.0f, step);
+			cameraCenter += glm::vec3(0.0f, 0.0f, step);
+			updateMVP();
+			break;	
+		case '4' :{
+			std:: cout << "Translate Roll : " << -step << std::endl;
+			eye -= glm::vec3(step, 0.0f, 0.0f);
+			cameraCenter -= glm::vec3(step, 0.0f, 0.0f);
+			updateMVP();
+			break;}
+		case '6' :
+			std:: cout << "Translate Roll : " << step << std::endl;
+			eye += glm::vec3(step, 0.0f, 0.0f);
+			cameraCenter += glm::vec3(step, 0.0f, 0.0f);
+			updateMVP();
+			break;
+		case '8' :
+			std:: cout << "Translate Yaw : " << step << std::endl;	
+			eye += glm::vec3(0.0f, step, 0.0f);
+			cameraCenter += glm::vec3(0.0f, step, 0.0f);
+			updateMVP();
+			break;
+			
 	}
 
 	glutPostRedisplay();
