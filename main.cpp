@@ -195,13 +195,13 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;
 		case 'r' :
 		case 'R' : {
- 			r = std::max(std::max(center[0], center[1]), center[2]);
+ 			//r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
 			fDistance =  r/tan( 30 * PI / 180.0f );
 			zNear = fDistance - r;
 			zFar = fDistance + r;
 			eye = glm::vec3(0.0f, 0.0f, fDistance);
 			lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
-			up = glm::vec3(0,1,0);	
+			up = glm::vec3(0,1,0);
 			updateMVP();
 			break;}	
 				
