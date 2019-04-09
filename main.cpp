@@ -189,7 +189,7 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 		case 'R' : {
 			float *max = mesh->box.getMax();
 			float *min = mesh->box.getMin();
- 			r = std::max(std::max((max[0]-min[0]), (max[1]-min[1])), (max[2]-min[2]));
+ 			r = std::sqrt(std::pow((max[0]-min[0]), 2) + std::pow((max[1]-min[1]), 2)+std::pow((max[2]-min[2]), 2));
 			fDistance =  r/tan( 30 * PI / 180.0f );
 			zNear = fDistance - r;
 			zFar = fDistance + r;
