@@ -1,6 +1,6 @@
 #include "include/vgl.h"
-#include "src/LoadShaders.cpp"
-#include "src/Mesh.cpp"
+#include "src/loadShaders.cpp"
+#include "src/mesh.cpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,6 +9,7 @@
 
 #define PI 3.14159265
 
+int initialTime = time(NULL), finalTime, frameCount = 0, fps;
 
 void setVertexPositions(float vertex[], float * vertex_, int numVertex){
 	for (int i =0; i < numVertex*3; i++){
@@ -49,15 +50,26 @@ glm::vec3 eye;
 glm::vec3 lookDir;
 glm::vec3 up ;
 glm::vec3 right;
+
 void display( void ){
 	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glBindVertexArray( vao[0] );
-	 ///wireframe
-	// disableWireframe
+
 	glDrawArrays(type, 0, mesh->getNumVertex());
 	glutSwapBuffers();
 
+	frameCount++;
+	finalTime = time(NULL);
+	
+	if (finalTime - initialTime > 0){
+		fps = frameCount/(finalTime - initialTime);
+		frameCount = 0;
+		initialTime = finalTime;
+		
+		glutSetWindowTitle(("FPS: " + std::to_string(fps)).c_str());
+	}
+	glutPostRedisplay();
 }
 
 void updateMVP(void){
@@ -332,7 +344,7 @@ int main( int argc, char** argv ){
 	glutInitContextVersion(4, 6);
 	glutInitContextProfile(GLUT_CORE_PROFILE);
 	glutCreateWindow(argv[0]);
-	glutSetWindowTitle("Exe_01");
+	glutSetWindowTitle("FPS: ");
 	
 	glewExperimental = GL_TRUE; 
 	if (glewInit()) {
@@ -348,7 +360,7 @@ int main( int argc, char** argv ){
 	init(argv[1]);
 	glutDisplayFunc(display);
 
-
+	
 	glutKeyboardFunc(inputKeyboard);
 	glutMainLoop();
 }
