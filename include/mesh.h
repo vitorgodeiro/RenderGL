@@ -6,7 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <glm/vec3.hpp> // glm::vec3
-#include "../src/Bbox.cpp"
+#include "../src/bbox.cpp"
 #include <stdio.h>
 #include <sstream>
 

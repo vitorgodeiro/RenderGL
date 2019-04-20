@@ -1,4 +1,4 @@
-#include "../include/Mesh.h"
+#include "../include/mesh.h"
 
 float *Mesh::getVertexPositions(){ return this->vertexPositions; }
 float *Mesh::getVertexNormal(){ return this->vertexNormal; }

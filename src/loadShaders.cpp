@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include <GLFW/glfw3.h>
-#include "../include/LoadShaders.h"
+#include "../include/loadShaders.h"
 
 static const GLchar* ReadShader( const char* filename ){
     FILE* infile = fopen( filename, "rb" );

@@ -1,4 +1,4 @@
-#include "../include/Bbox.h"
+#include "../include/bbox.h"
 
 std::string Bbox::toString(){
 	return "X_min = " + std::to_string(this->xMin) + "\nX_max = " + std::to_string(this->xMax) + "\nY_min = " 
