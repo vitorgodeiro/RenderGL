@@ -1,6 +1,8 @@
 #include "include/vgl.h"
 #include "src/loadShaders.cpp"
+#include "src/camera.cpp"
 #include "src/mesh.cpp"
+#include "include/mat4.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
