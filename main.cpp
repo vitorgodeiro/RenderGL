@@ -14,8 +14,8 @@
 
 int initialTime = time(NULL), finalTime, frameCount = 0, fps;
 
-void setVertexPositions(float vertex[], float * vertex_, int numVertex){
-	for (int i =0; i < numVertex*3; i++){
+void setVertex(float vertex[], float * vertex_, int numVertex){
+	for (int i =0; i < numVertex; i++){
 		vertex[i] = vertex_[i];
 	}	
 }
@@ -38,10 +38,12 @@ float *center = new float[3];
 
 float step = 1.0f;
 
+GLint uniModel;
+GLint uniView;
 GLint uniMVP;
-glm::mat4 mvp;
 GLint uniColor;
-GLfloat color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+GLint uniEye;
+GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
 glm::mat4 model, view, proj;
 int type = GL_TRIANGLES;
@@ -80,8 +82,10 @@ void updateMVP(void){
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
 	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);
 	view = glm::lookAt( eye, eye + lookDir, up);
-	mvp = proj*view*model;
-	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
+	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
+	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(proj*view*model));
 }
 
 void init (std::string pathMesh){
@@ -92,11 +96,29 @@ void init (std::string pathMesh){
 	GLuint program = LoadShaders(shaders);
 	glUseProgram(program);
 	mesh = new Mesh(pathMesh);
-	GLfloat vertex_positions[mesh->getNumVertex()*3];
-	setVertexPositions(vertex_positions, mesh->getVertexPositions(), mesh->getNumVertex());
-    GLfloat vertex_colors[] = { 1.00f, 0.00f, 0.00f,  
+	
+	GLfloat vertexPositions[mesh->getNumVertex()*3];
+	setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
+	GLfloat ambientColor[mesh->getnumberMaterials()*3];
+	setVertex(ambientColor, mesh->getAmbientColor(), mesh->getnumberMaterials()*3);
+	GLfloat diffuseColor[mesh->getnumberMaterials()*3];
+	setVertex(diffuseColor, mesh->getDiffuseColor(), mesh->getnumberMaterials()*3);
+	GLfloat specularColor[mesh->getnumberMaterials()*3];
+	setVertex(specularColor, mesh->getSpecularColor(), mesh->getnumberMaterials()*3);
+	GLfloat materialShine[mesh->getnumberMaterials()*3];
+	setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
+
+	GLfloat vertexNormal[mesh->getNumVertex()*3];
+	setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
+	GLfloat faceNormal[mesh->getNumVertex()];
+	setVertex(faceNormal, mesh->getFaceNormal(), mesh->getNumVertex());
+
+
+   /* GLfloat vertex_colors[] = { 1.00f, 0.00f, 0.00f,  
 						  		0.00f, 1.00f, 0.00f, 
-						  		0.00f, 0.00f, 1.00f };
+						  		0.00f, 0.00f, 1.00f };*/
+
+
 	
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
@@ -104,12 +126,12 @@ void init (std::string pathMesh){
     glGenBuffers(1, vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_positions) + sizeof(vertex_colors), NULL, GL_STATIC_DRAW );
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_positions), vertex_positions);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_positions), sizeof(vertex_colors), vertex_colors);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexNormal), NULL, GL_STATIC_DRAW );
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertex_positions));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
     glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	
@@ -126,10 +148,33 @@ void init (std::string pathMesh){
 	lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
 	up = glm::vec3(0,1,0);
 	right = glm::vec3(1.0f ,0.0f, 0.0f);
+	uniModel = glGetUniformLocation(program, "model");
+	uniView = glGetUniformLocation(program, "view");
 	uniMVP = glGetUniformLocation(program, "mvp");
 	updateMVP();
+
 	uniColor = glGetUniformLocation(program, "color");
-	glUniform4fv(uniColor, 1, color);
+	glUniform3fv(uniColor, 1, color);
+
+	GLint uniAmbientColor = glGetUniformLocation(program, "aColor");
+	glUniform3fv(uniAmbientColor, 1, ambientColor);
+
+	GLint uniDiffuseColor = glGetUniformLocation(program, "dColor");
+	glUniform3fv(uniDiffuseColor, 1, diffuseColor);
+
+	GLint uniSpecularColor = glGetUniformLocation(program, "sColor");
+	glUniform3fv(uniSpecularColor, 1, specularColor);
+
+	GLint uniMaterialShine = glGetUniformLocation(program, "mShine");
+	glUniform1fv(uniMaterialShine, 1, materialShine);
+
+	uniEye = glGetUniformLocation(program, "eye");
+	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
+	//std::cout << "Size = " << sizeof(vertexPositions) << std::endl;
+	//std::cout << vertexNormal[0] << " " << vertexNormal[1] << " " << vertexNormal[2] << std::endl;
+
+
+
 }
 
 void inputKeyboard(unsigned char key, int _x, int _y){
@@ -163,7 +208,7 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			std::cin >> color[2];
 			std::cout << "The actual colors in RGB is:" << std::endl;
 			std::cout << "R = " << color[0] << " G = " << color[1] << " B = " << color[2] << std::endl;
-			glUniform4fv(uniColor, 1, color);
+			glUniform3fv(uniColor, 1, color);
 			break;}
 		case 'e' :
 		case 'E' :
