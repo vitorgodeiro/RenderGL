@@ -1,12 +1,16 @@
 #include "../include/mesh.h"
 
-float *Mesh::getVertexPositions(){ return this->vertexPositions; }
-float *Mesh::getVertexNormal(){ return this->vertexNormal; }
-float *Mesh::getVertexColorIndex(){ return this->vertexColorIndex; }
+float *Mesh::getVertexPositions() 	{ return this->vertexPositions; }
+float *Mesh::getVertexNormal() 		{ return this->vertexNormal; }
+float *Mesh::getVertexColorIndex() 	{ return this->vertexColorIndex; }
+float *Mesh::getAmbientColor()  	{ return this->ambientColor; }
+float *Mesh::getDiffuseColor()  	{ return this->diffuseColor; }
+float *Mesh::getSpecularColor() 	{ return this->specularColor; }
+float *Mesh::getMaterialShine() 	{ return this->materialShine; }
+float *Mesh::getFaceNormal() 		{return this->faceNormal; }
 
-int Mesh::getNumVertex(){
-	return numberTriangles*3;
-}
+int Mesh::getNumVertex() { return numberTriangles*3; }
+int Mesh::getnumberMaterials() { return numberMaterials; }
 
 Mesh::Mesh(std::string file){
 	char ch;
@@ -26,14 +30,14 @@ Mesh::Mesh(std::string file){
 	this->diffuseColor = new float[3*this->numberMaterials];
 	this->specularColor = new float[3*this->numberMaterials];
 	this->materialShine = new float[this->numberMaterials];
-
-	for(int materialCount = numberMaterials; 0 < materialCount; materialCount--){
-		fscanf(fp, "ambient color %f %f %f\n", &ambientColor[3*materialCount], &ambientColor[3*materialCount + 1], &ambientColor[3*materialCount + 2]);
+	
+	for(int materialCount = 0; materialCount < numberMaterials; materialCount++){
+		fscanf(fp, "ambient color %f %f %f\n", &(ambientColor[3*materialCount ]), &(ambientColor[3*materialCount + 1]), &(ambientColor[3*materialCount + 2]));
 		fscanf(fp, "diffuse color %f %f %f\n", &diffuseColor[3*materialCount], &diffuseColor[3*materialCount + 1], &diffuseColor[3*materialCount + 2]);
-		fscanf(fp, "specular color %f %f %f\n", &specularColor[3*materialCount], &specularColor[3*materialCount + 1], &specularColor[3*materialCount + 2]);
+		fscanf(fp, "specular color %f %f %f\n", &specularColor[3*materialCount ], &specularColor[3*materialCount + 1], &specularColor[3*materialCount + 2]);
 		fscanf(fp, "material shine %f\n", &materialShine[materialCount]);
 	}
-
+	
 	fscanf(fp, "%c", &ch);
 	while(ch!= '\n') {fscanf(fp, "%c", &ch);}
 

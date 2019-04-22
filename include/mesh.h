@@ -23,6 +23,7 @@ class Mesh {
 		float *vertexPositions;
 		float *vertexNormal;
 		float *vertexColorIndex;
+
 		float *faceNormal;
 		
 		float *ambientColor;
@@ -38,6 +39,15 @@ class Mesh {
 		float *getVertexPositions();
 		float *getVertexNormal();
 		float *getVertexColorIndex();
+
+		float *getFaceNormal();
+
+		float *getAmbientColor();
+		float *getDiffuseColor();
+		float *getSpecularColor();
+		float *getMaterialShine();
+
 		int getNumVertex();
+		int getnumberMaterials();
 };
 #endif
