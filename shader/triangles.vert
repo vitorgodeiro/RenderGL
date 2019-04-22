@@ -16,31 +16,37 @@ uniform float mShine;
 
 out vec4 glColor;
 
-const vec3 lightPos = vec3(0.0, 1000.0, 0.0);
+const vec3 lightPos = vec3(0.0, 10000.0, 0.0);
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
 
 void main() {
 
     gl_Position = mvp*vec4(vPosition, 1.0);
-    vec3 norm = normalize(mat3(transpose(inverse(model))) * normalize(vNormal));
-    vec3 vPos = vec3(model*vec4(vPosition, 1));
-		
+
+    vec3 norm = normalize(vNormal);
+    vec3 surfacePos = (vPosition);
+	
+	
+	
 	//ambient
 	vec3 ambient = aColor*lightColor;
+
 	
 	//difuse
-	vec3 lightDir = normalize(lightPos - vPos);  
+	vec3 lightDir = normalize(lightPos - surfacePos);  
 	float diff = max(dot(lightDir, norm), 0.0f);
 	vec3 diffuse = dColor*lightColor*diff;
 
 	vec3 specular = vec3(0.0);
 	if (diff > 0.0) {
-		vec3 viewDir = -normalize(eye - vPos);
+		vec3 viewDir = normalize(eye - surfacePos);
 		vec3 reflectDir = reflect(-lightDir, norm);  
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+		vec3 h = normalize(lightDir+viewDir);
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), mShine);
 		specular = sColor*spec*lightColor;  
-	}	
+	}
+	
 	
 	vec3 gamma = vec3(1.0/2.2);
     vec3 result = (ambient + diffuse + specular)*color;

@@ -36,7 +36,7 @@ float fDistance;
 float *center = new float[3];
 
 
-float step = 1.0f;
+float step = 50.0f;
 
 GLint uniModel;
 GLint uniView;
