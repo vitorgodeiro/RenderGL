@@ -10,6 +10,8 @@ float *Mesh::getMaterialShine() 	{ return this->materialShine; }
 float *Mesh::getFaceNormal() 		{return this->faceNormal; }
 
 int Mesh::getNumVertex() { return numberTriangles*3; }
+int Mesh::getNumTriangles() { return numberTriangles; }
+
 int Mesh::getnumberMaterials() { return numberMaterials; }
 
 Mesh::Mesh(std::string file){

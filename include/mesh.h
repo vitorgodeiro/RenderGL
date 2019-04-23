@@ -48,6 +48,7 @@ class Mesh {
 		float *getMaterialShine();
 
 		int getNumVertex();
+		int getNumTriangles();
 		int getnumberMaterials();
 };
 #endif
