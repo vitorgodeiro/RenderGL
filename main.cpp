@@ -28,8 +28,19 @@ GLint uniSpecularColor;
 GLint uniMaterialShine ;
 GLint uniCloseGl;
 
+int checkShacder = 0;
+
 GLuint vao[1];
 GLuint vbo[1];
+GLuint shadingNormal;
+GLuint shadingNormalF;
+
+GLuint shadingGoroud;
+GLuint shadingGoroudFull;
+GLuint shadingPhong;
+GLuint shadingPhongF;
+
+
 
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
@@ -147,6 +158,7 @@ void updateMVP(void){
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
 	
+	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
 	if (closeGL){
 		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
@@ -165,6 +177,8 @@ void updateMVP(void){
     	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     	glEnableVertexAttribArray(0);
     	glUniform1i(uniCloseGl, 1);
+		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+
 	}else{
 		GLfloat vertexPositions[mesh->getNumVertex()*3];
 		setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
@@ -175,22 +189,20 @@ void updateMVP(void){
     	glBindVertexArray(vao[0]);
 
     	glGenBuffers(1, vbo);
-    	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), NULL, GL_STATIC_DRAW );
+    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexNormal), NULL, GL_STATIC_DRAW );
     	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
-    	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
 
     	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-     	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
-    	
+    	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
     	glEnableVertexAttribArray(0);
-    	glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(1);
     	glUniform1i(uniCloseGl, 0);
-	}
 
-    
-	
+    	
+	}	
 }
 
 void display( void ){
@@ -231,9 +243,7 @@ void init (std::string pathMesh){
 	uniMaterialShine = glGetUniformLocation(program, "mShine");
 	uniEye = glGetUniformLocation(program, "eye");
 	
-	mesh = new Mesh(pathMesh);
-	
-	
+	mesh = new Mesh(pathMesh);	
 
 	GLfloat ambientColor[mesh->getnumberMaterials()*3];
 	setVertex(ambientColor, mesh->getAmbientColor(), mesh->getnumberMaterials()*3);
@@ -272,7 +282,20 @@ void init (std::string pathMesh){
 	glUniform3fv(uniDiffuseColor, 1, diffuseColor);
 	glUniform3fv(uniSpecularColor, 1, specularColor);
 	glUniform1fv(uniMaterialShine, 1, materialShine);
-	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
+	
+
+	shadingNormal = glGetSubroutineIndex(program, GL_VERTEX_SHADER, "normal");
+	shadingGoroud = glGetSubroutineIndex(program, GL_VERTEX_SHADER, "goroud");
+	shadingGoroudFull = glGetSubroutineIndex(program, GL_VERTEX_SHADER, "goroudFull");
+	shadingPhong = glGetSubroutineIndex(program, GL_VERTEX_SHADER, "phong");
+	shadingPhongF = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "phong");
+	shadingNormalF = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "normal");
+
+   	glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+   	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
+
+   	
+	
 	
 }
 

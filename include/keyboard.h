@@ -156,6 +156,27 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;
 		}
 //
+		case 'v' :{
+			checkShacder++;
+			if(checkShacder == 0){
+				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
+			}else if (checkShacder == 1){
+				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingGoroud);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
+			}else if (checkShacder == 2){
+				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingGoroudFull);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
+			}else if(checkShacder == 3){				
+				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingPhong);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingPhongF);
+				checkShacder = -1;
+			}
+			
+			
+			updateMVP();
+			break;
+		}
 		case '1' :
 			std:: cout << "Translate Pitch Center : " << -step << std::endl;	
 			eye += lookDir*step;

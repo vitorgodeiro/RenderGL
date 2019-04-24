@@ -1,7 +1,7 @@
 Object name = COW
 # triangles = 8373
 Material count = 1
-ambient color 0.200 0.200 0.200
+ambient color 0.100 0.100 0.100
 diffuse color 0.306 0.259 0.220
 specular color 0.900 0.900 0.900
 material shine 8.000
