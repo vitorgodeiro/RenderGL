@@ -6,7 +6,7 @@ FLTK = `fltk-config --cxxflags --ldflags`
 
 COMPILER_FLAGS = -Wall
 
-LINKER_FLAGS = -lglfw -lGL -lGLEW -lglut -lfltk
+LINKER_FLAGS = -lglfw -lGL -lGLEW -lglut -lfltk -lnanogui
 
 OBJ_NAME = exe
 
