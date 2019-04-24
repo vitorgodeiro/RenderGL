@@ -8,13 +8,16 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			if (typeFrontFace == GL_CCW){
 				typeFrontFace = GL_CW;
 				glFrontFace(typeFrontFace);
+				ccw = true;
 				std::cout << "Activate Clock-Wise" << std::endl;
 			}
 			else{
 				typeFrontFace = GL_CCW;
 				glFrontFace(typeFrontFace);
+				ccw = false;
 				std::cout << "Activate Counter Clock-Wise" << std::endl;
 			}
+			updateMVP();
 		break;
 	glFrontFace(typeFrontFace);
 		case 'c' :
@@ -33,14 +36,17 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;}
 		case 'e' :
 		case 'E' :
-			glEnable(GL_CULL_FACE);  
-			glCullFace(GL_BACK); 
+			if (!closeGL) {	glEnable(GL_CULL_FACE);  glCullFace(GL_BACK); }
 			std::cout << "Enable Back-Face Culling" << std::endl;
+			backFaceGL = true;
+			updateMVP();
 			break;
 		case 'd' :
 		case 'D' :
 			glDisable(GL_CULL_FACE);  
 			std::cout << "Disable Back-Face Culling" << std::endl;
+			backFaceGL = false;
+			updateMVP();
 			break;
 		case 'f' :
 		case 'F' : {

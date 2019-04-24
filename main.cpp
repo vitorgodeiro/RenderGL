@@ -34,6 +34,8 @@ GLuint vbo[1];
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
 bool closeGL = true;
+bool backFaceGL = false;
+bool ccw = false;
 
 int width = 800;
 int height = 600;
@@ -83,6 +85,7 @@ void mat4Vec3 (float vertex[], Mat4GL mvp){
 void compute(float vertex[], Mat4GL mvp, int numtriangles){
 	float v1[4], v2[4], v3[4];
 	vertexGL.clear();
+	float a;
 	for (int i =0; i < numtriangles; i++){
 		v1[0] = vertex[i*9];
 		v1[1] = vertex[i*9 + 1];
@@ -104,18 +107,23 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 		mat4Vec3(v3, mvp);
 				
 		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 ){
+
 			v1[0] = v1[0]/v1[3];
 			v1[1] = v1[1]/v1[3];
-			vertexGL.push_back(v1[0]);
-			vertexGL.push_back(v1[1]);
 			v2[0] = v2[0]/v2[3];
 			v2[1] = v2[1]/v2[3];
-			vertexGL.push_back(v2[0]);
-			vertexGL.push_back(v2[1]);
 			v3[0] = v3[0]/v3[3];
 			v3[1] = v3[1]/v3[3];
-			vertexGL.push_back(v3[0]);
-			vertexGL.push_back(v3[1]);
+
+			a = 0.5*((v1[0]*v2[1] - v2[0]*v1[1]) + v2[0]*v3[1] - v3[0]*v2[1] + v3[0]*v1[1] - v1[0]*v3[1]);
+			if ((a < 0 and ccw) or (a > 0 and !ccw)or !backFaceGL) {
+				vertexGL.push_back(v1[0]);
+				vertexGL.push_back(v1[1]);
+				vertexGL.push_back(v2[0]);
+				vertexGL.push_back(v2[1]);
+				vertexGL.push_back(v3[0]);
+				vertexGL.push_back(v3[1]);
+			}
 		}
 		
 	}	
@@ -138,11 +146,10 @@ void updateMVP(void){
 	glm::vec3 p = eye + lookDir;
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
-	compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
 	
 
-
 	if (closeGL){
+		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
 		GLfloat vertexPositions[vertexGL.size()];
 		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
 
