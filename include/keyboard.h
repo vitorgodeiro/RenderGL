@@ -140,6 +140,15 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			updateMVP();
 			break;
 			}
+		case 'z':
+		case 'Z':{
+			closeGL = !closeGL;
+			std:: cout << "Change to  ";
+			if (closeGL) {std::cout << "CloseGL";} else {std::cout << "OpenGL";}
+			std::cout << std::endl;
+			updateMVP();
+			break;
+		}
 //
 		case '1' :
 			std:: cout << "Translate Pitch Center : " << -step << std::endl;	

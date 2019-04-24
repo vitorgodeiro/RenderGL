@@ -10,50 +10,43 @@
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
 #include <vector>
+
+
 #define PI 3.14159265
-
-int initialTime = time(NULL), finalTime, frameCount = 0, fps;
-
-void setVertex(float vertex[], float * vertex_, int numVertex){
-	for (int i =0; i < numVertex; i++){
-		vertex[i] = vertex_[i];
-	}	
-}
-
 #define THETA 0.0174533f
 #define COSTHETA float(cos(THETA))
 #define SINTHETA float(sin(THETA))
-
-std::vector<GLfloat> vertexGL;
-
-GLuint vao[1];
-GLuint vbo[1];
-Mesh *mesh;
-int width = 800;
-int height = 600;
-
-float zNear, zFar;
-float r;
-float fDistance;
-float *center = new float[3];
-
-
-
-float step = 50.0f;
 
 GLint uniModel;
 GLint uniView;
 GLint uniMVP;
 GLint uniColor;
 GLint uniEye;
+GLint uniAmbientColor;
+GLint uniDiffuseColor;
+GLint uniSpecularColor;
+GLint uniMaterialShine ;
+GLint uniCloseGl;
+
+GLuint vao[1];
+GLuint vbo[1];
+
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
-glm::mat4 model, view, proj;
-Mat4GL modelGL, viewGl, projGl;
+bool closeGL = true;
 
+int width = 800;
+int height = 600;
+int initialTime = time(NULL), finalTime, frameCount = 0, fps;
 int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
+
+float step = 50.0f;
+float zNear, zFar;
+float r;
+float fDistance;
+float *center = new float[3];
 
 //camera 
 glm::vec3 eye;
@@ -61,25 +54,17 @@ glm::vec3 lookDir;
 glm::vec3 up ;
 glm::vec3 right;
 
-void display( void ){
-	
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	glBindVertexArray( vao[0] );
+glm::mat4 model, view, proj;
+Mat4GL modelGL, viewGl, projGl;
 
-	glDrawArrays(type, 0, vertexGL.size()/2);
-	glutSwapBuffers();
+std::vector<GLfloat> vertexGL;
 
-	frameCount++;
-	finalTime = time(NULL);
-	
-	if (finalTime - initialTime > 0){
-		fps = frameCount/(finalTime - initialTime);
-		frameCount = 0;
-		initialTime = finalTime;
-		
-		glutSetWindowTitle(("FPS: " + std::to_string(fps)).c_str());
-	}
-	glutPostRedisplay();
+Mesh *mesh;
+
+void setVertex(float vertex[], float * vertex_, int numVertex){
+	for (int i =0; i < numVertex; i++){
+		vertex[i] = vertex_[i];
+	}	
 }
 
 void mat4Vec3 (float vertex[], Mat4GL mvp){
@@ -154,28 +139,74 @@ void updateMVP(void){
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
 	compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
-
 	
-	GLfloat vertexPositions[vertexGL.size()];
-	for (int i = 0; i < vertexGL.size(); i++){
-		vertexPositions[i] = vertexGL[i];
-		
+
+
+	if (closeGL){
+		GLfloat vertexPositions[vertexGL.size()];
+		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
+
+		glGenVertexArrays(1, vao);
+    	glBindVertexArray(vao[0]);
+
+    	glGenBuffers(1, vbo);
+    	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), NULL, GL_STATIC_DRAW );
+    	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
+    
+    	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    	glEnableVertexAttribArray(0);
+    	glUniform1i(uniCloseGl, 1);
+	}else{
+		GLfloat vertexPositions[mesh->getNumVertex()*3];
+		setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
+		GLfloat vertexNormal[mesh->getNumVertex()*3];
+		setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
+
+		glGenVertexArrays(1, vao);
+    	glBindVertexArray(vao[0]);
+
+    	glGenBuffers(1, vbo);
+    	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), NULL, GL_STATIC_DRAW );
+    	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
+    	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
+
+    	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+     	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
+    	
+    	glEnableVertexAttribArray(0);
+    	glEnableVertexAttribArray(1);
+    	glUniform1i(uniCloseGl, 0);
 	}
 
-
-    glGenVertexArrays(1, vao);
-    glBindVertexArray(vao[0]);
-
-    glGenBuffers(1, vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), NULL, GL_STATIC_DRAW );
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
     
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
 	
 }
+
+void display( void ){
+	
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glBindVertexArray( vao[0] );
+
+	if (closeGL){ glDrawArrays(type, 0, vertexGL.size()/2); } else {glDrawArrays(type, 0, mesh->getNumVertex());}
+	glutSwapBuffers();
+
+	frameCount++;
+	finalTime = time(NULL);
+	
+	if (finalTime - initialTime > 0){
+		fps = frameCount/(finalTime - initialTime);
+		frameCount = 0;
+		initialTime = finalTime;
+		
+		glutSetWindowTitle(("FPS: " + std::to_string(fps)).c_str());
+	}
+	glutPostRedisplay();
+}
+
 
 void init (std::string pathMesh){
 	ShaderInfo  shaders[] = { { GL_VERTEX_SHADER, "shader/triangles.vert" },
@@ -184,11 +215,17 @@ void init (std::string pathMesh){
 	
 	GLuint program = LoadShaders(shaders);
 	glUseProgram(program);
+
+	uniColor = glGetUniformLocation(program, "color");
+	
+	uniAmbientColor = glGetUniformLocation(program, "aColor");
+	uniDiffuseColor = glGetUniformLocation(program, "dColor");
+	uniSpecularColor = glGetUniformLocation(program, "sColor");
+	uniMaterialShine = glGetUniformLocation(program, "mShine");
+	uniEye = glGetUniformLocation(program, "eye");
+	
 	mesh = new Mesh(pathMesh);
 	
-	//GLfloat vertexPositions[mesh->getNumVertex()*3];
-	
-	//setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
 	
 
 	GLfloat ambientColor[mesh->getnumberMaterials()*3];
@@ -200,8 +237,7 @@ void init (std::string pathMesh){
 	GLfloat materialShine[mesh->getnumberMaterials()*3];
 	setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
 
-	GLfloat vertexNormal[mesh->getNumVertex()*3];
-	setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
+	
 	GLfloat faceNormal[mesh->getNumVertex()];
 	setVertex(faceNormal, mesh->getFaceNormal(), mesh->getNumVertex());
 
@@ -221,62 +257,21 @@ void init (std::string pathMesh){
 	uniModel = glGetUniformLocation(program, "model");
 	uniView = glGetUniformLocation(program, "view");
 	uniMVP = glGetUniformLocation(program, "mvp");
+	uniCloseGl = glGetUniformLocation(program, "closeGL");
 	updateMVP();
-	
-	GLfloat vertexPositions[vertexGL.size()];
-	for (int i = 0; i < vertexGL.size(); i++){
-		vertexPositions[i] = vertexGL[i];
 		
-	}
-
-
-    glGenVertexArrays(1, vao);
-    glBindVertexArray(vao[0]);
-
-    glGenBuffers(1, vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexNormal), NULL, GL_STATIC_DRAW );
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
-    glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	
-
-	
-	
-
-	uniColor = glGetUniformLocation(program, "color");
 	glUniform3fv(uniColor, 1, color);
-
-	GLint uniAmbientColor = glGetUniformLocation(program, "aColor");
 	glUniform3fv(uniAmbientColor, 1, ambientColor);
-
-	GLint uniDiffuseColor = glGetUniformLocation(program, "dColor");
 	glUniform3fv(uniDiffuseColor, 1, diffuseColor);
-
-	GLint uniSpecularColor = glGetUniformLocation(program, "sColor");
 	glUniform3fv(uniSpecularColor, 1, specularColor);
-
-	GLint uniMaterialShine = glGetUniformLocation(program, "mShine");
 	glUniform1fv(uniMaterialShine, 1, materialShine);
-
-	uniEye = glGetUniformLocation(program, "eye");
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 	
-	
-
-
-
 }
 
 #include "include/keyboard.h"
 
 int main( int argc, char** argv ){
-	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowSize(width, height);
@@ -286,21 +281,17 @@ int main( int argc, char** argv ){
 	glutSetWindowTitle("FPS: ");
 	
 	glewExperimental = GL_TRUE; 
+
 	if (glewInit()) {
 		std::cerr << "Unable to initialize GLEW ... exiting" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	 
+	glDepthFunc(GL_LESS);	 
 	glFrontFace(typeFrontFace);
-
 	init(argv[1]);
-	glutDisplayFunc(display);
-
-	
+	glutDisplayFunc(display);	
 	glutKeyboardFunc(inputKeyboard);
 	glutMainLoop();
 }
-

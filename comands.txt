@@ -9,6 +9,7 @@
 'd' or 'D' for disable Back-facing culling
 'q' or 'Q' for quit
 'r' or 'R' reset
+'z' or 'Z' change closeGL to OpenGL
 '1', '4', '8', '6', '2', '3' translate the camera in center object
 ',', '.', ';', '/', translate the camera 
 'u', 'U', 'j', 'J' rotate Roll
