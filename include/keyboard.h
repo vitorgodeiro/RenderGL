@@ -150,7 +150,8 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 		case 'Z':{
 			closeGL = !closeGL;
 			std:: cout << "Change to  ";
-			if (closeGL) {std::cout << "CloseGL";} else {std::cout << "OpenGL";}
+			if (closeGL) {std::cout << "CloseGL";glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);} else {std::cout << "OpenGL";}
 			std::cout << std::endl;
 			updateMVP();
 			break;

@@ -55,7 +55,7 @@ int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
 
-float step = 50.0f;
+float step = 100.0f;
 float zNear, zFar;
 float r;
 float fDistance;
@@ -116,8 +116,8 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 		mat4Vec3(v1, mvp);
 		mat4Vec3(v2, mvp);
 		mat4Vec3(v3, mvp);
-				
-		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 ){
+
+		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && (v1[2]/v1[3]) < 1 && -1 <= (v1[2]/v1[3]) && (v1[2]/v1[3]) <= 1.0f && -1.0f <= (v2[2]/v2[3]) && (v2[2]/v2[3]) <= 1.0f && -1.0f <= (v3[2]/v3[3]) && (v3[2]/v3[3]) <= 1.0f){
 
 			v1[0] = v1[0]/v1[3];
 			v1[1] = v1[1]/v1[3];
@@ -292,11 +292,7 @@ void init (std::string pathMesh){
 	shadingNormalF = glGetSubroutineIndex(program, GL_FRAGMENT_SHADER, "normal");
 
    	glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
-   	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
-
-   	
-	
-	
+   	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);	
 }
 
 #include "include/keyboard.h"
