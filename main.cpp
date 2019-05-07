@@ -11,7 +11,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
 #include <vector>
-
+#include <limits>
 
 #define PI 3.14159265
 #define THETA 0.0174533f
@@ -65,6 +65,29 @@ float *center = new float[3];
 
 std::vector<float> zBuffer;
 std::vector<Vec4> colorBuffer;
+
+float getZBuffer(int i, int j){
+	return zBuffer[i*width + j];
+}
+
+Vec4 getColorBuffer(int i, int j){
+	return colorBuffer[i*width + j];
+}
+
+void setColorBuffer(int i, int j, Vec4 val){
+	colorBuffer[i*width + j] = val;
+}
+
+void setZBuffer(int i, int j, float val){
+	zBuffer[i*width + j] = val;
+}
+
+void initBuffers(){
+	for (int i = 0; i < height*width; i++){
+		zBuffer.push_back(std::numeric_limits<float>::max());
+		colorBuffer.push_back(Vec4());
+	}
+}
 
 //camera 
 glm::vec3 eye;
@@ -173,7 +196,7 @@ void updateMVP(void){
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
 	viewPortGL = Mat4GL::viewPort(0, width, height, 0);
-
+	initBuffers();
 	
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
@@ -271,7 +294,6 @@ void init (std::string pathMesh){
 	GLfloat materialShine[mesh->getnumberMaterials()*3];
 	setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
 
-	
 	GLfloat faceNormal[mesh->getNumVertex()];
 	setVertex(faceNormal, mesh->getFaceNormal(), mesh->getNumVertex());
 
