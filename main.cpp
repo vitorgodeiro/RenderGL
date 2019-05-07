@@ -4,6 +4,7 @@
 #include "src/camera.cpp"
 #include "src/mesh.cpp"
 #include "include/mat4.h"
+#include "include/vec4.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -50,6 +51,7 @@ bool ccw = false;
 
 int width = 800;
 int height = 600;
+
 int initialTime = time(NULL), finalTime, frameCount = 0, fps;
 int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
@@ -61,6 +63,9 @@ float r;
 float fDistance;
 float *center = new float[3];
 
+std::vector<float> zBuffer;
+std::vector<Vec4> colorBuffer;
+
 //camera 
 glm::vec3 eye;
 glm::vec3 lookDir;
@@ -68,7 +73,7 @@ glm::vec3 up ;
 glm::vec3 right;
 
 glm::mat4 model, view, proj;
-Mat4GL modelGL, viewGl, projGl;
+Mat4GL modelGL, viewGl, projGl, viewPortGL;
 
 std::vector<GLfloat> vertexGL;
 
@@ -117,14 +122,24 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 		mat4Vec3(v2, mvp);
 		mat4Vec3(v3, mvp);
 
-		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && (v1[2]/v1[3]) < 1 && -1 <= (v1[2]/v1[3]) && (v1[2]/v1[3]) <= 1.0f && -1.0f <= (v2[2]/v2[3]) && (v2[2]/v2[3]) <= 1.0f && -1.0f <= (v3[2]/v3[3]) && (v3[2]/v3[3]) <= 1.0f){
+		//Verificando se está no NDC e se W > 0
+		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && (v1[2]/v1[3]) <= 1.0f && -1 <= (v1[2]/v1[3]) && (v1[2]/v1[3]) <= 1.0f && -1.0f <= (v2[2]/v2[3]) && (v2[2]/v2[3]) <= 1.0f && -1.0f <= (v3[2]/v3[3]) && (v3[2]/v3[3]) <= 1.0f){
 
+			//Divisao por w
 			v1[0] = v1[0]/v1[3];
 			v1[1] = v1[1]/v1[3];
+			v1[2] = v1[2]/v1[3];
+			v1[3] = v1[3]/v1[3];
+
 			v2[0] = v2[0]/v2[3];
 			v2[1] = v2[1]/v2[3];
+			v2[2] = v2[2]/v2[3];
+			v2[3] = v2[3]/v2[3];
+
 			v3[0] = v3[0]/v3[3];
 			v3[1] = v3[1]/v3[3];
+			v3[2] = v3[2]/v3[3];
+			v3[3] = v3[3]/v3[3];
 
 			a = 0.5*((v1[0]*v2[1] - v2[0]*v1[1]) + v2[0]*v3[1] - v3[0]*v2[1] + v3[0]*v1[1] - v1[0]*v3[1]);
 			if ((a < 0 and ccw) or (a > 0 and !ccw)or !backFaceGL) {
@@ -157,6 +172,8 @@ void updateMVP(void){
 	glm::vec3 p = eye + lookDir;
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
+	viewPortGL = Mat4GL::viewPort(0, width, height, 0);
+
 	
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
