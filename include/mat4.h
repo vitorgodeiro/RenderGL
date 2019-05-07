@@ -92,6 +92,17 @@ class Mat4GL
             return mat;
         }
 
+        static Mat4GL viewPort(float l, float r, float b, float t){
+			Mat4GL mat;
+			mat[0] = (r-l)/2;
+			mat[3] = (r+l)/2;
+			mat[5] = (t-b)/2;
+			mat[7] = (t+b)/2;
+			mat[10] = 1;
+			mat[15] = 1;
+			return mat;
+        }
+
     private:
         float e[16];
 };
