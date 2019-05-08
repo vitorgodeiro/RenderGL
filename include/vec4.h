@@ -20,7 +20,7 @@ class Vec4
 {
     public:
         /** @brief The construtor specifies a Vec4 class.*/
-        Vec4( float e0_=0.f, float e1_=0.f, float e2_=0.f, float e3_=0.f ): e{ e0_, e1_, e2_, e3_ }{ }
+        Vec4( float e0_=0.f, float e1_=0.f, float e2_=0.f, float e3_=1.f ): e{ e0_, e1_, e2_, e3_ }{ }
 
         inline float r() const { return e[0]; }
         inline float g() const { return e[1]; }
@@ -45,12 +45,6 @@ class Vec4
         inline Vec4& operator*=( const float f);
         inline Vec4& operator/=( const float f);
 
-        inline float length() const {return (sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]));}
-        inline float squared_length() const {return (e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);}
-        static inline float dot(const Vec4 & v1, const Vec4 & v2);
-        static inline Vec4 cross(const Vec4 & v1, const Vec4 & v2);
-        static inline Vec4 unit_vector(const Vec4 & v);
-        inline void make_unit_vector();
         inline Vec4 min(const Vec4& v1, const Vec4& v2);
         inline Vec4 max(const Vec4& v1, const Vec4& v2);
 
