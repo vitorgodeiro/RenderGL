@@ -41,7 +41,8 @@ GLuint shadingGoroudFull;
 GLuint shadingPhong;
 GLuint shadingPhongF;
 
-
+GLuint textureID;
+GLuint program;
 
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
@@ -64,30 +65,37 @@ float fDistance;
 float *center = new float[3];
 
 std::vector<float> zBuffer;
-std::vector<Vec4> colorBuffer;
+std::vector<GLfloat> colorBuffer;
 
 float getZBuffer(int i, int j){
-	return zBuffer[i*width + j];
+	return zBuffer[j*width + i];
 }
 
 Vec4 getColorBuffer(int i, int j){
-	return colorBuffer[i*width + j];
+	return colorBuffer[j*width + i];
 }
 
 void setColorBuffer(int i, int j, Vec4 val){
-	colorBuffer[i*width + j] = val;
+	colorBuffer[j*width + i] = val[0];
+	colorBuffer[j*width + i + 1] = val[1];
+	colorBuffer[j*width + i + 2] = val[2];
+	colorBuffer[j*width + i + 3] = val[3];
 }
 
 void setZBuffer(int i, int j, float val){
-	zBuffer[i*width + j] = val;
+	zBuffer[j*width + i] = val;
 }
 
 void initBuffers(){
+	zBuffer.clear();
+	colorBuffer.clear();
+
 	for (int i = 0; i < height*width; i++){
-		zBuffer.push_back(std::numeric_limits<float>::max());
-		colorBuffer.push_back(Vec4());
+		zBuffer.push_back(std::numeric_limits<float>::infinity());
+		colorBuffer.push_back(1.0f); colorBuffer.push_back(1.0f); colorBuffer.push_back(0.5f); colorBuffer.push_back(1.0f);
 	}
 }
+
 
 //camera 
 glm::vec3 eye;
@@ -99,6 +107,8 @@ glm::mat4 model, view, proj;
 Mat4GL modelGL, viewGl, projGl, viewPortGL;
 
 std::vector<GLfloat> vertexGL;
+std::vector<GLfloat> vertexGL2;
+
 
 Mesh *mesh;
 
@@ -108,7 +118,7 @@ void setVertex(float vertex[], float * vertex_, int numVertex){
 	}	
 }
 
-void mat4Vec3 (float vertex[], Mat4GL mvp){
+void mat4Vec (float vertex[], Mat4GL mvp){
 	float a, b, c, d;
 	a = mvp[0]*vertex[0] + mvp[1]*vertex[1] + mvp[2]*vertex[2] + mvp[3]*vertex[3];
 	b = mvp[4]*vertex[0] + mvp[5]*vertex[1] + mvp[6]*vertex[2] + mvp[7]*vertex[3];
@@ -141,28 +151,17 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 		v3[2] = vertex[i*9 + 8];
 		v3[3] = 1;
 		
-		mat4Vec3(v1, mvp);
-		mat4Vec3(v2, mvp);
-		mat4Vec3(v3, mvp);
+		mat4Vec(v1, mvp);
+		mat4Vec(v2, mvp);
+		mat4Vec(v3, mvp);
 
 		//Verificando se está no NDC e se W > 0
 		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && (v1[2]/v1[3]) <= 1.0f && -1 <= (v1[2]/v1[3]) && (v1[2]/v1[3]) <= 1.0f && -1.0f <= (v2[2]/v2[3]) && (v2[2]/v2[3]) <= 1.0f && -1.0f <= (v3[2]/v3[3]) && (v3[2]/v3[3]) <= 1.0f){
 
 			//Divisao por w
-			v1[0] = v1[0]/v1[3];
-			v1[1] = v1[1]/v1[3];
-			v1[2] = v1[2]/v1[3];
-			v1[3] = v1[3]/v1[3];
-
-			v2[0] = v2[0]/v2[3];
-			v2[1] = v2[1]/v2[3];
-			v2[2] = v2[2]/v2[3];
-			v2[3] = v2[3]/v2[3];
-
-			v3[0] = v3[0]/v3[3];
-			v3[1] = v3[1]/v3[3];
-			v3[2] = v3[2]/v3[3];
-			v3[3] = v3[3]/v3[3];
+			v1[0] = v1[0]/v1[3]; v1[1] = v1[1]/v1[3]; v1[2] = v1[2]/v1[3]; v1[3] = v1[3]/v1[3]; 
+			v2[0] = v2[0]/v2[3]; v2[1] = v2[1]/v2[3]; v2[2] = v2[2]/v2[3]; v2[3] = v2[3]/v2[3];
+			v3[0] = v3[0]/v3[3]; v3[1] = v3[1]/v3[3]; v3[2] = v3[2]/v3[3]; v3[3] = v3[3]/v3[3]; 
 
 			a = 0.5*((v1[0]*v2[1] - v2[0]*v1[1]) + v2[0]*v3[1] - v3[0]*v2[1] + v3[0]*v1[1] - v1[0]*v3[1]);
 			if ((a < 0 and ccw) or (a > 0 and !ccw)or !backFaceGL) {
@@ -172,12 +171,31 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 				vertexGL.push_back(v2[1]);
 				vertexGL.push_back(v3[0]);
 				vertexGL.push_back(v3[1]);
+				
+				mat4Vec(v1, viewPortGL);
+				mat4Vec(v2, viewPortGL);
+				mat4Vec(v3, viewPortGL);
+				
+				vertexGL2.push_back(v1[0]); vertexGL2.push_back(v1[1]); vertexGL2.push_back(v1[2]); vertexGL2.push_back(v1[3]);
+				vertexGL2.push_back(v2[0]); vertexGL2.push_back(v2[1]); vertexGL2.push_back(v2[2]); vertexGL2.push_back(v2[3]);
+				vertexGL2.push_back(v3[0]); vertexGL2.push_back(v3[1]); vertexGL2.push_back(v3[2]); vertexGL2.push_back(v3[3]);
 			}
-		}
-		
+		}	
 	}	
 }
 
+
+void raster(){
+	int u, v;
+	for (unsigned int i = 0; i < vertexGL2.size(); i+=4){
+		u = (int)round(vertexGL2[i]);
+		v = (int)round(vertexGL2[i + 1]);
+		if (getZBuffer(u, v) > vertexGL2[4*i+2]){
+			setZBuffer(u, v, vertexGL2[4*i+2]);
+			setColorBuffer(u, v, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+	}
+}
 
 void updateMVP(void){
 	model = glm::mat4(1.0f);
@@ -200,10 +218,51 @@ void updateMVP(void){
 	
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
+	glEnable(GL_TEXTURE_2D); // Required for glBuildMipmap() to work (!)
 	if (closeGL){
 		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
+		raster();
 		GLfloat vertexPositions[vertexGL.size()];
 		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
+
+		float vertexData[]  = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
+								1.0f, 1.0f, -1.0f, 1.0f, -1.0f,-1.0f};
+
+		float textureCoords[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // tex coords 1sttriangle
+								   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};  // tex coords 1sttriangle
+
+		
+
+
+		unsigned char texdata[width * height * 4];
+		for(int i=0; i<height * width * 4; i++){
+        	texdata[i] = colorBuffer[i]*255;
+    	}
+
+
+		
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+             GL_RGBA, GL_UNSIGNED_BYTE, texdata);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+   		glUniform1i(glGetUniformLocation(program, "texture1"), 0);
+
+   		
+		
+		
+		
+
+		
+		
+		
+		
+
+
 
 		glGenVertexArrays(1, vao);
     	glBindVertexArray(vao[0]);
@@ -211,13 +270,20 @@ void updateMVP(void){
     	glGenBuffers(1, vbo);
     	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), NULL, GL_STATIC_DRAW );
-    	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
-    
+    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData) + sizeof(textureCoords), NULL, GL_STATIC_DRAW );
+    	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexData), vertexData);
+    	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexData), sizeof(textureCoords), textureCoords);
+
+
     	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexData));
     	glEnableVertexAttribArray(0);
-    	glUniform1i(uniCloseGl, 1);
-		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+		glEnableVertexAttribArray(1);
+    	/*glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    	glEnableVertexAttribArray(0);*/
+
+    	//glUniform1i(uniCloseGl, 1);
+		//glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
 
 	}else{
 		GLfloat vertexPositions[mesh->getNumVertex()*3];
@@ -272,8 +338,11 @@ void init (std::string pathMesh){
         					  { GL_FRAGMENT_SHADER, "shader/triangles.frag" },
 						      { GL_NONE, NULL } };
 	
-	GLuint program = LoadShaders(shaders);
+	program = LoadShaders(shaders);
 	glUseProgram(program);
+
+
+
 
 	uniColor = glGetUniformLocation(program, "color");
 	
@@ -332,6 +401,9 @@ void init (std::string pathMesh){
 
    	glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
    	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);	
+
+
+
 }
 
 #include "include/keyboard.h"
