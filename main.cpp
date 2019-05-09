@@ -181,16 +181,79 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 	}	
 }
 
+//Bresenham’s Line Drawing Algorithm
+/*void line(float x0, float y0, float z0,  float x1, float y1, float z1) { 
+	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+   	int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+   	int dz = abs(z1-z0), sz = z0<z1 ? 1 : -1; 
+   	int dm = std::max(std::max(abs(dx-dy), abs(dx-dz)), abs(dy-dz)), i = dm; 
+   	x1 = y1 = z1 = dm/2; 
+
+   	while(0 < i--) { 
+   		std::cout << z0 << std::endl;
+   		setColorBuffer(x0, y0, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      	x1 -= dx; if (x1 < 0) { x1 += dm; x0 += sx; } 
+      	y1 -= dy; if (y1 < 0) { y1 += dm; y0 += sy; } 
+      	z1 -= dz; if (z1 < 0) { z1 += dm; z0 += sz; } 
+
+   }	
+}*/
+
+//Bresenham’s Line Drawing Algorithm
+void line(int x0, int y0, int z0,  int x1, int y1, int z1) { 
+    bool steep = false; 
+    if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
+    if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
+    float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; 
+
+    float derror = std::abs(dy/float(dx)); 
+    float error = 0; 
+    int y = y0; 
+    int derrorZ = std::abs(dz/float(dx)); 
+    int errorZ = 0; 
+    int z = z0; 
+
+    for (int x=x0; x<=x1; x++) { 
+    	if (steep) { 
+    		if (getZBuffer(y, x) > z){
+    			setColorBuffer(y, x, Vec4(1.0f, 1.0f, 1.0f, 1.0f)); 
+    			setZBuffer(y, x, z);
+    		}
+    	} 
+    	else { 
+    		if (getZBuffer(x, y) > z){
+    			setColorBuffer(x, y, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    			setZBuffer(x, y, z);
+    		} 
+    	}
+        error += derror; 
+        errorZ += derrorZ; 
+        
+        if (error > 0.5) { y += (y1>y0?1:-1); error -= 1.0f; }
+
+        if (errorZ > 0.5) { z += (z1>z0?1:-1); errorZ -= 1.0f; }       
+    } 	
+}
+
 
 void raster(){
-	int u, v;
-	for (unsigned int i = 0; i < vertexGL2.size(); i+=4){
-		u = (int)round(vertexGL2[i]);
-		v = (int)round(vertexGL2[i + 1]);
-		if (getZBuffer(u, v) >= vertexGL2[4*i + 2]){
-			setZBuffer(u, v, vertexGL2[4*i+2]);
-			setColorBuffer(u, v, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		}
+	int u1, u2, u3, v1, v2, v3, n1, n2, n3;
+	for (unsigned int i = 0; i < vertexGL2.size(); i+=12){
+		u1 = (int)round(vertexGL2[i]);
+		v1 = (int)round(vertexGL2[i + 1]);
+		n1 = (int)round(vertexGL2[i + 2]);
+
+		u2 = (int)round(vertexGL2[i + 4]);
+		v2 = (int)round(vertexGL2[i + 5]);
+		n2 = (int)round(vertexGL2[i + 6]);
+
+		u3 = (int)round(vertexGL2[i + 8]);
+		v3 = (int)round(vertexGL2[i + 9]);
+		n3 = (int)round(vertexGL2[i + 10]);
+
+		line(u1, v1, n1, u2, v2, n2);
+		line(u2, v2, n2, u3, v3, n3);
+		line(u3, v3, n3, u1, v1, n1);
 	}
 }
 
@@ -232,7 +295,7 @@ void updateMVP(void){
 
 
 		unsigned char texdata[colorBuffer.size() * 4];
-		for(int i=0; i< colorBuffer.size(); i++){			
+		for(unsigned int i=0; i< colorBuffer.size(); i++){			
         	texdata[i*4] = colorBuffer[i][0]*255;
         	texdata[i*4+1] = colorBuffer[i][1]*255;
         	texdata[i*4+2] = colorBuffer[i][2]*255;
