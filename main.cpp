@@ -65,7 +65,7 @@ float fDistance;
 float *center = new float[3];
 
 std::vector<float> zBuffer;
-std::vector<GLfloat> colorBuffer;
+std::vector<Vec4> colorBuffer;
 
 float getZBuffer(int i, int j){
 	return zBuffer[j*width + i];
@@ -76,10 +76,7 @@ Vec4 getColorBuffer(int i, int j){
 }
 
 void setColorBuffer(int i, int j, Vec4 val){
-	colorBuffer[j*width + i] = val[0];
-	colorBuffer[j*width + i + 1] = val[1];
-	colorBuffer[j*width + i + 2] = val[2];
-	colorBuffer[j*width + i + 3] = val[3];
+	colorBuffer[j*width + i] = val;
 }
 
 void setZBuffer(int i, int j, float val){
@@ -92,7 +89,7 @@ void initBuffers(){
 
 	for (int i = 0; i < height*width; i++){
 		zBuffer.push_back(std::numeric_limits<float>::infinity());
-		colorBuffer.push_back(1.0f); colorBuffer.push_back(1.0f); colorBuffer.push_back(0.5f); colorBuffer.push_back(1.0f);
+		colorBuffer.push_back(Vec4()); 
 	}
 }
 
@@ -190,7 +187,7 @@ void raster(){
 	for (unsigned int i = 0; i < vertexGL2.size(); i+=4){
 		u = (int)round(vertexGL2[i]);
 		v = (int)round(vertexGL2[i + 1]);
-		if (getZBuffer(u, v) > vertexGL2[4*i+2]){
+		if (getZBuffer(u, v) >= vertexGL2[4*i + 2]){
 			setZBuffer(u, v, vertexGL2[4*i+2]);
 			setColorBuffer(u, v, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		}
@@ -225,8 +222,8 @@ void updateMVP(void){
 		GLfloat vertexPositions[vertexGL.size()];
 		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
 
-		float vertexData[]  = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-								1.0f, 1.0f, -1.0f, 1.0f, -1.0f,-1.0f};
+		float vertexData[]  = { -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 
+								1.0f, -1.0f, -1.0f, -1.0f, -1.0f,1.0f};
 
 		float textureCoords[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // tex coords 1sttriangle
 								   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};  // tex coords 1sttriangle
@@ -234,9 +231,13 @@ void updateMVP(void){
 		
 
 
-		unsigned char texdata[width * height * 4];
-		for(int i=0; i<height * width * 4; i++){
-        	texdata[i] = colorBuffer[i]*255;
+		unsigned char texdata[colorBuffer.size() * 4];
+		for(int i=0; i< colorBuffer.size(); i++){			
+        	texdata[i*4] = colorBuffer[i][0]*255;
+        	texdata[i*4+1] = colorBuffer[i][1]*255;
+        	texdata[i*4+2] = colorBuffer[i][2]*255;
+        	texdata[i*4+3] = colorBuffer[i][3]*255;
+
     	}
 
 
@@ -245,8 +246,7 @@ void updateMVP(void){
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-             GL_RGBA, GL_UNSIGNED_BYTE, texdata);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texdata);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureID);
