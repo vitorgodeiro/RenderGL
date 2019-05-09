@@ -47,7 +47,7 @@ GLuint program;
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
 bool closeGL = true;
-bool backFaceGL = false;
+bool backFaceGL = true;
 bool ccw = false;
 
 int width = 800;
@@ -199,8 +199,11 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
    }	
 }*/
 
+std::vector<float> listV0;
+std::vector<float> listV1;
+
 //Bresenham’s Line Drawing Algorithm
-void line(int x0, int y0, int z0,  int x1, int y1, int z1) { 
+void line(int x0, int y0, int z0, int x1, int y1, int z1, int a) { 
     bool steep = false; 
     if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
     if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
@@ -213,6 +216,7 @@ void line(int x0, int y0, int z0,  int x1, int y1, int z1) {
     int errorZ = 0; 
     int z = z0; 
 
+   
     for (int x=x0; x<=x1; x++) { 
     	if (steep) { 
     		if (getZBuffer(y, x) > z){
@@ -226,19 +230,67 @@ void line(int x0, int y0, int z0,  int x1, int y1, int z1) {
     			setZBuffer(x, y, z);
     		} 
     	}
+    	if ( a == 0 ){
+    		if (steep){
+    			listV0.push_back(y);
+    			listV0.push_back(x);
+    			listV0.push_back(z);
+    		}else {
+        		listV0.push_back(x);
+        		listV0.push_back(y);
+        		listV0.push_back(z);
+        	}
+
+        }else if (a == 1){
+        	if (steep){
+        		listV1.push_back(y);
+    			listV1.push_back(x);
+    			listV1.push_back(z);
+    		}else{
+        		listV1.push_back(x);
+        		listV1.push_back(y);
+        		listV1.push_back(z);
+        	}
+        }  
+
+
         error += derror; 
         errorZ += derrorZ; 
         
-        if (error > 0.5) { y += (y1>y0?1:-1); error -= 1.0f; }
-
-        if (errorZ > 0.5) { z += (z1>z0?1:-1); errorZ -= 1.0f; }       
+        if (error > 0.5) { 
+        	y += (y1>y0?1:-1); 
+        	error -= 1.0f;       	
+        }
+        if (errorZ > 0.5) { 
+        	z += (z1>z0?1:-1); 
+        	errorZ -= 1.0f; 
+        }       
     } 	
 }
 
 
+/*void fillTriangle(int x0, int y0, int z0, int x1, int y1, int z1, int x2, int y2, int z2){
+	int dx0 = abs(x1-x0), sx0 = x0<x1 ? 1 : -1;
+   	int dy0 = abs(y1-y0), sy0 = y0<y1 ? 1 : -1; 
+   	int dz0 = abs(z1-z0), sz0 = z0<z1 ? 1 : -1; 
+   	int dm0 = std::max(std::max(abs(dx0-dy0), abs(dx0-dz0)), abs(dy0-dz0)), i = dm0; 
+   	x1 = y1 = z1 = dm/2; 
+
+   	while(0 < i--) { 
+   		std::cout << z0 << std::endl;
+   		setColorBuffer(x0, y0, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      	x1 -= dx; if (x1 < 0) { x1 += dm; x0 += sx; } 
+      	y1 -= dy; if (y1 < 0) { y1 += dm; y0 += sy; } 
+      	z1 -= dz; if (z1 < 0) { z1 += dm; z0 += sz; } 
+
+   }	
+}*/
+
+
+
 void raster(){
 	int u1, u2, u3, v1, v2, v3, n1, n2, n3;
-	for (unsigned int i = 0; i < vertexGL2.size(); i+=12){
+	for (unsigned int i = 0; i < vertexGL2.size(); i+=12){//vertexGL2.size()
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
 		n1 = (int)round(vertexGL2[i + 2]);
@@ -251,9 +303,21 @@ void raster(){
 		v3 = (int)round(vertexGL2[i + 9]);
 		n3 = (int)round(vertexGL2[i + 10]);
 
-		line(u1, v1, n1, u2, v2, n2);
-		line(u2, v2, n2, u3, v3, n3);
-		line(u3, v3, n3, u1, v1, n1);
+		listV0.clear();
+		listV1.clear();
+		line(u1, v1, n1, u2, v2, n2, 0);
+		line(u1, v1, n1, u3, v3, n3, 1);
+		//line(u2, v2, n2, u3, v3, n3, 3);
+		int size = 0;
+		if (listV0.size() < listV1.size()) {size = listV0.size();} else {size = listV1.size();}
+
+		for (int i = 0; i < listV0.size(); i+=3){
+			for (int j = 0; j < listV1.size(); j+=3){
+				line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3);
+			}
+		}
+		
+		//line(u3, v3, n3, u1, v1, n1);
 	}
 }
 
