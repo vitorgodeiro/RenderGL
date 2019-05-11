@@ -83,16 +83,6 @@ void setZBuffer(int i, int j, float val){
 	zBuffer[j*width + i] = val;
 }
 
-void initBuffers(){
-	zBuffer.clear();
-	colorBuffer.clear();
-
-	for (int i = 0; i < height*width; i++){
-		zBuffer.push_back(std::numeric_limits<float>::infinity());
-		colorBuffer.push_back(Vec4()); 
-	}
-}
-
 
 //camera 
 glm::vec3 eye;
@@ -108,6 +98,16 @@ std::vector<GLfloat> vertexGL2;
 
 
 Mesh *mesh;
+
+void initBuffers(){
+	zBuffer.clear();
+	colorBuffer.clear();
+
+	for (int i = 0; i < height*width; i++){
+		zBuffer.push_back(std::numeric_limits<float>::infinity());
+		colorBuffer.push_back(Vec4()); 
+	}
+}
 
 void setVertex(float vertex[], float * vertex_, int numVertex){
 	for (int i =0; i < numVertex; i++){
@@ -131,6 +131,7 @@ void mat4Vec (float vertex[], Mat4GL mvp){
 void compute(float vertex[], Mat4GL mvp, int numtriangles){
 	float v1[4], v2[4], v3[4];
 	vertexGL.clear();
+	vertexGL2.clear();
 	float a;
 	for (int i =0; i < numtriangles; i++){
 		v1[0] = vertex[i*9];
@@ -308,11 +309,9 @@ void raster(){
 		line(u1, v1, n1, u2, v2, n2, 0);
 		line(u1, v1, n1, u3, v3, n3, 1);
 		//line(u2, v2, n2, u3, v3, n3, 3);
-		int size = 0;
-		if (listV0.size() < listV1.size()) {size = listV0.size();} else {size = listV1.size();}
-
-		for (int i = 0; i < listV0.size(); i+=3){
-			for (int j = 0; j < listV1.size(); j+=3){
+		
+		for (unsigned int i = 0; i < listV0.size(); i+=3){
+			for (unsigned int j = 0; j < listV1.size(); j+=3){
 				line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3);
 			}
 		}
@@ -322,6 +321,7 @@ void raster(){
 }
 
 void updateMVP(void){
+
 	model = glm::mat4(1.0f);
 	
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
@@ -338,14 +338,11 @@ void updateMVP(void){
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
 	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
 	viewPortGL = Mat4GL::viewPort(0, width, height, 0);
-	initBuffers();
 	
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
-	glEnable(GL_TEXTURE_2D); // Required for glBuildMipmap() to work (!)
 	if (closeGL){
 		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
-		raster();
 		GLfloat vertexPositions[vertexGL.size()];
 		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
 
@@ -357,7 +354,8 @@ void updateMVP(void){
 
 		
 
-
+		initBuffers();
+		raster();
 		unsigned char texdata[colorBuffer.size() * 4];
 		for(unsigned int i=0; i< colorBuffer.size(); i++){			
         	texdata[i*4] = colorBuffer[i][0]*255;
