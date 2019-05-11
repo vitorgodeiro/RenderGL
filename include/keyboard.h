@@ -33,6 +33,7 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			std::cout << "The actual colors in RGB is:" << std::endl;
 			std::cout << "R = " << color[0] << " G = " << color[1] << " B = " << color[2] << std::endl;
 			glUniform3fv(uniColor, 1, color);
+			updateMVP();
 			break;}
 		case 'e' :
 		case 'E' :

@@ -60,6 +60,11 @@ int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
 
+Vec3 lightPos = Vec3(0.0, 1000.0, 0.0);
+Vec3 lightColor = Vec3(1.0, 1.0, 1.0);
+
+
+
 float step = 100.0f;
 float zNear, zFar;
 float r;
@@ -97,8 +102,14 @@ Mat4GL modelGL, viewGl, projGl, viewPortGL;
 
 std::vector<GLfloat> vertexGL;
 std::vector<GLfloat> vertexGL2;
+std::vector<GLfloat> vertexNormalGL;
 
 
+GLfloat ambientColor[3];
+GLfloat diffuseColor[3];
+GLfloat specularColor[3];
+GLfloat materialShine;
+	
 Mesh *mesh;
 
 void initBuffers(){
@@ -130,31 +141,39 @@ void mat4Vec (float vertex[], Mat4GL mvp){
 	vertex[3] = d;
 }
 
-void compute(float vertex[], Mat4GL mvp, int numtriangles){
+void compute(float vertex[], Mat4GL mvp, int numtriangles, float vertexNormal[]){
 	float v1[4], v2[4], v3[4];
+	float n1[4], n2[4], n3[4];
 	vertexGL.clear();
 	vertexGL2.clear();
+	vertexNormalGL.clear();
+
 	float a;
 	for (int i =0; i < numtriangles; i++){
+		
 		v1[0] = vertex[i*9];
 		v1[1] = vertex[i*9 + 1];
 		v1[2] = vertex[i*9 + 2];
 		v1[3] = 1;
+		n1[0] = vertexNormal[i*9]; n1[1] = vertexNormal[i*9 + 1]; n1[2] = vertexNormal[i*9 + 2];
 
 		v2[0] = vertex[i*9 + 3];
 		v2[1] = vertex[i*9 + 4];
 		v2[2] = vertex[i*9 + 5];
 		v2[3] = 1;
+		n2[0] = vertexNormal[i*9]; n2[1] = vertexNormal[i*9 + 1]; n2[2] = vertexNormal[i*9 + 2];
 
 		v3[0] = vertex[i*9 + 6];
 		v3[1] = vertex[i*9 + 7];
 		v3[2] = vertex[i*9 + 8];
 		v3[3] = 1;
-		
+		n3[0] = vertexNormal[i*9]; n3[1] = vertexNormal[i*9 + 1]; n3[2] = vertexNormal[i*9 + 2];
+
 		mat4Vec(v1, mvp);
 		mat4Vec(v2, mvp);
 		mat4Vec(v3, mvp);
 
+		
 		//Verificando se está no NDC e se W > 0
 		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && (v1[2]/v1[3]) <= 1.0f && -1 <= (v1[2]/v1[3]) && (v1[2]/v1[3]) <= 1.0f && -1.0f <= (v2[2]/v2[3]) && (v2[2]/v2[3]) <= 1.0f && -1.0f <= (v3[2]/v3[3]) && (v3[2]/v3[3]) <= 1.0f){
 
@@ -179,6 +198,10 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles){
 				vertexGL2.push_back(v1[0]); vertexGL2.push_back(v1[1]); vertexGL2.push_back(v1[2]); vertexGL2.push_back(v1[3]);
 				vertexGL2.push_back(v2[0]); vertexGL2.push_back(v2[1]); vertexGL2.push_back(v2[2]); vertexGL2.push_back(v2[3]);
 				vertexGL2.push_back(v3[0]); vertexGL2.push_back(v3[1]); vertexGL2.push_back(v3[2]); vertexGL2.push_back(v3[3]);
+
+				vertexNormalGL.push_back(n1[0]); vertexNormalGL.push_back(n1[1]); vertexNormalGL.push_back(n1[2]);
+				vertexNormalGL.push_back(n2[0]); vertexNormalGL.push_back(n2[1]); vertexNormalGL.push_back(n2[2]);
+				vertexNormalGL.push_back(n3[0]); vertexNormalGL.push_back(n3[1]); vertexNormalGL.push_back(n3[2]);
 			}
 		}	
 	}	
@@ -206,7 +229,7 @@ std::vector<float> listV0;
 std::vector<float> listV1;
 
 //Bresenham’s Line Drawing Algorithm
-void line(int x0, int y0, int z0, int x1, int y1, int z1, int a) { 
+void line(int x0, int y0, int z0, int x1, int y1, int z1, int a, float color1[], float color2[]) { 
     bool steep = false; 
     if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
     if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
@@ -218,18 +241,28 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a) {
     int derrorZ = std::abs(dz/float(dx)); 
     int errorZ = 0; 
     int z = z0; 
-
-   
+  	float colorF[3] = {1, 1,1};
+  	float f;
     for (int x=x0; x<=x1; x++) { 
     	if (steep) { 
     		if (getZBuffer(y, x) > z){
-    			setColorBuffer(y, x, Vec4(1.0f, 1.0f, 1.0f, 1.0f)); 
+    			if (y1==y0) {f = 0;} else {f = ((float(y-y0)/float(dy)));}
+    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
+    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
+    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
+    			setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
     			setZBuffer(y, x, z);
     		}
     	} 
     	else { 
     		if (getZBuffer(x, y) > z){
-    			setColorBuffer(x, y, Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    			if (x1==x0) {f = 0;} else {f = ((float(x-x0)/float(dx)));}
+    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
+    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
+    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
+    			setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
     			setZBuffer(x, y, z);
     		} 
     	}
@@ -255,7 +288,6 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a) {
         		listV1.push_back(z);
         	}
         }  
-
 
         error += derror; 
         errorZ += derrorZ; 
@@ -290,10 +322,17 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a) {
 }*/
 
 
-
 void raster(){
 	int u1, u2, u3, v1, v2, v3, n1, n2, n3;
-	for (unsigned int i = 0; i < vertexGL2.size(); i+=12){//vertexGL2.size()
+	float color1[3];
+	float color2[3];
+	float color3[3];
+	Vec3 lightDir1, lightDir2, lightDir3;
+	float spec;
+	Vec3 viewDir;
+	float diff;
+
+	for (unsigned int i = 0, j = 0; i < vertexGL2.size(); i+=12, j+=9){//vertexGL2.size()
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
 		n1 = (int)round(vertexGL2[i + 2]);
@@ -306,33 +345,92 @@ void raster(){
 		v3 = (int)round(vertexGL2[i + 9]);
 		n3 = (int)round(vertexGL2[i + 10]);
 
+		Vec3 vNormal1 = Vec3::unit_vector(Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
+		Vec3 vNormal2 = Vec3::unit_vector(Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
+		Vec3 vNormal3 = Vec3::unit_vector(Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
+
+		//difuse
+		lightDir1 = (lightPos - Vec3(u1, v1, n1));  lightDir1 = Vec3::unit_vector(lightDir1);
+		diff = std::max(Vec3::dot(lightDir1, vNormal1), 0.0f);
+
+		//Specular
+		if (diff > 0.0) {
+			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u1, v1, n1));
+			//vec3 reflectDir = reflect(-lightDir, norm);  
+			Vec3 h = Vec3::unit_vector(lightDir1+viewDir);
+			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
+			//specular = sColor*spec*lightColor; 
+
+		}
+		
+		color1[0] = (ambientColor[0] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[0]; 
+		color1[1] = (ambientColor[1] + diffuseColor[1]*diff + specularColor[1]*spec)*lightColor[1]; 
+		color1[2] = (ambientColor[2] + diffuseColor[2]*diff + specularColor[2]*spec)*lightColor[2];
+
+		lightDir2 = (lightPos - Vec3(u2, v2, n2));  lightDir2 = Vec3::unit_vector(lightDir2);
+		diff = std::max(Vec3::dot(lightDir2, vNormal2), 0.0f);
+
+		//Specular
+		if (diff > 0.0) {
+			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u2, v2, n2));
+			//vec3 reflectDir = reflect(-lightDir, norm);  
+			Vec3 h = Vec3::unit_vector(lightDir2+viewDir);
+			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
+			//specular = sColor*spec*lightColor; 
+
+		}
+
+		color2[0] = (ambientColor[0] + diffuseColor[0]*diff+ specularColor[0]*spec)*lightColor[0]; 
+		color2[1] = (ambientColor[1] + diffuseColor[0]*diff+ specularColor[1]*spec)*lightColor[1]; 
+		color2[2] = (ambientColor[2] + diffuseColor[0]*diff+ specularColor[2]*spec)*lightColor[2];
+
+		lightDir3 = (lightPos - Vec3(u2, v2, n2));  lightDir3 = Vec3::unit_vector(lightDir3);
+		diff = std::max(Vec3::dot(lightDir3, vNormal3), 0.0f);
+
+		//Specular
+		if (diff > 0.0) {
+			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u3, v3, n3));
+			//vec3 reflectDir = reflect(-lightDir, norm);  
+			Vec3 h = Vec3::unit_vector(lightDir3+viewDir);
+			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
+			//specular = sColor*spec*lightColor; 
+
+		}
+
+		color3[0] = (ambientColor[0] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[0]; 
+		color3[1] = (ambientColor[1] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[1]; 
+		color3[2] = (ambientColor[2] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[2];
+
+
+	/*	std::cout << color1[0] << " " << color1[1] << " " << color1[2] << std::endl;
+		std::cout << color2[0] << " " << color2[1] << " " << color2[2] << std::endl;
+		std::cout << color3[0] << " " << color3[1] << " " << color3[2] << std::endl;
+		std::cout << "******************************\n";*/
+
+
 		listV0.clear();
 		listV1.clear();
 		if (typeFormRender == 0){
-			line(u1, v1, n1, u2, v2, n2, 0);
-			line(u1, v1, n1, u3, v3, n3, 1);
+			line(u1, v1, n1, u2, v2, n2, 0, color1, color2);
+			line(u1, v1, n1, u3, v3, n3, 1, color1, color3);
 			for (unsigned int i = 0; i < listV0.size(); i+=3){
 				for (unsigned int j = 0; j < listV1.size(); j+=3){
-					line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3);
+					line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3, color1, color1);
 				}
 			}
-
-		//	line(u2, v2, n2, u3, v3, n3, 3);
 		}else if (typeFormRender == 1) {
 		
-			line(u1, v1, n1, u2, v2, n2, 0);
-			line(u1, v1, n1, u3, v3, n3, 1);
-			line(u2, v2, n2, u3, v3, n3, 3);
+			line(u1, v1, n1, u2, v2, n2, 0, color1, color2);
+			line(u1, v1, n1, u3, v3, n3, 1, color1, color3);
+			line(u2, v2, n2, u3, v3, n3, 3, color2, color3);
 			
 		}
-		//line(u3, v3, n3, u1, v1, n1);
 	}
 }
 
 void updateMVP(void){
 
-	model = glm::mat4(1.0f);
-	
+	model = glm::mat4(1.0f);	
 	model = glm::translate(model, glm::vec3(-center[0], -center[1], -center[2])); 
 	view = glm::lookAt( eye, eye + lookDir, up);
 	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);
@@ -341,7 +439,6 @@ void updateMVP(void){
 	glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(proj*view*model));
 
-	
 	modelGL = Mat4GL(1.0f)*Transformation::translation(-center[0], -center[1], -center[2]);
 	glm::vec3 p = eye + lookDir;
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
@@ -351,17 +448,13 @@ void updateMVP(void){
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
 	if (closeGL){
-		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles());
-		GLfloat vertexPositions[vertexGL.size()];
-		for (unsigned int i = 0; i < vertexGL.size(); i++){	vertexPositions[i] = vertexGL[i]; }
-
+		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles(), mesh->getVertexNormal());
+		
 		float vertexData[]  = { -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 
 								1.0f, -1.0f, -1.0f, -1.0f, -1.0f,1.0f};
 
 		float textureCoords[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   // tex coords 1sttriangle
 								   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};  // tex coords 1sttriangle
-
-		
 
 		initBuffers();
 		raster();
@@ -371,11 +464,8 @@ void updateMVP(void){
         	texdata[i*4+1] = colorBuffer[i][1]*255;
         	texdata[i*4+2] = colorBuffer[i][2]*255;
         	texdata[i*4+3] = colorBuffer[i][3]*255;
-
     	}
 
-
-		
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -385,18 +475,6 @@ void updateMVP(void){
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureID);
    		glUniform1i(glGetUniformLocation(program, "texture1"), 0);
-
-   		
-		
-		
-		
-
-		
-		
-		
-		
-
-
 
 		glGenVertexArrays(1, vao);
     	glBindVertexArray(vao[0]);
@@ -488,14 +566,11 @@ void init (std::string pathMesh){
 	
 	mesh = new Mesh(pathMesh);	
 
-	GLfloat ambientColor[mesh->getnumberMaterials()*3];
 	setVertex(ambientColor, mesh->getAmbientColor(), mesh->getnumberMaterials()*3);
-	GLfloat diffuseColor[mesh->getnumberMaterials()*3];
 	setVertex(diffuseColor, mesh->getDiffuseColor(), mesh->getnumberMaterials()*3);
-	GLfloat specularColor[mesh->getnumberMaterials()*3];
 	setVertex(specularColor, mesh->getSpecularColor(), mesh->getnumberMaterials()*3);
-	GLfloat materialShine[mesh->getnumberMaterials()*3];
-	setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
+	//setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
+	materialShine = mesh->getMaterialShine()[0];
 
 	GLfloat faceNormal[mesh->getNumVertex()];
 	setVertex(faceNormal, mesh->getFaceNormal(), mesh->getNumVertex());
@@ -523,7 +598,7 @@ void init (std::string pathMesh){
 	glUniform3fv(uniAmbientColor, 1, ambientColor);
 	glUniform3fv(uniDiffuseColor, 1, diffuseColor);
 	glUniform3fv(uniSpecularColor, 1, specularColor);
-	glUniform1fv(uniMaterialShine, 1, materialShine);
+	glUniform1fv(uniMaterialShine, 1, &materialShine);
 	
 
 	shadingNormal = glGetSubroutineIndex(program, GL_VERTEX_SHADER, "normal");
