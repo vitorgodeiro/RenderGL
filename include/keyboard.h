@@ -89,13 +89,17 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 				
 		case 't' :
 		case 'T' : 
-			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+			typeFormRender = 0;
+			//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 			type = GL_TRIANGLES;
+			updateMVP();
 			break;
 		case 'w' :
 		case 'W' : 
-			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+			typeFormRender = 1;
+			//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 			type = GL_TRIANGLES;
+			updateMVP();
 			break;
 /////// Roll (z)
 		case 'u' :

@@ -46,6 +46,8 @@ GLuint program;
 
 GLfloat color[] = {1.0f, 1.0f, 1.0f};
 
+int typeFormRender = 0;
+
 bool closeGL = true;
 bool backFaceGL = true;
 bool ccw = false;
@@ -306,16 +308,23 @@ void raster(){
 
 		listV0.clear();
 		listV1.clear();
-		line(u1, v1, n1, u2, v2, n2, 0);
-		line(u1, v1, n1, u3, v3, n3, 1);
-		//line(u2, v2, n2, u3, v3, n3, 3);
-		
-		for (unsigned int i = 0; i < listV0.size(); i+=3){
-			for (unsigned int j = 0; j < listV1.size(); j+=3){
-				line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3);
+		if (typeFormRender == 0){
+			line(u1, v1, n1, u2, v2, n2, 0);
+			line(u1, v1, n1, u3, v3, n3, 1);
+			for (unsigned int i = 0; i < listV0.size(); i+=3){
+				for (unsigned int j = 0; j < listV1.size(); j+=3){
+					line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3);
+				}
 			}
-		}
+
+		//	line(u2, v2, n2, u3, v3, n3, 3);
+		}else if (typeFormRender == 1) {
 		
+			line(u1, v1, n1, u2, v2, n2, 0);
+			line(u1, v1, n1, u3, v3, n3, 1);
+			line(u2, v2, n2, u3, v3, n3, 3);
+			
+		}
 		//line(u3, v3, n3, u1, v1, n1);
 	}
 }
