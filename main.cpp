@@ -200,10 +200,10 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles, float vertexNormal[])
 				mat4Vec(v2, viewPortGL);
 				mat4Vec(v3, viewPortGL);
 
-				//std::cout << v1[0] << " " << v1[1] << " " << v1[2] << " " << v1[3] << "*" << std::endl;
-				//std::cout << v2[0] << " " << v2[1] << " " << v2[2] << " " << v2[3] << "*" << std::endl;
-				//std::cout << v3[0] << " " << v3[1] << " " << v3[2] << " " << v3[3] << "*" << std::endl;
-				//std::cout << "***************************\n";
+				/*std::cout << v1[0] << " " << v1[1] << " " << v1[2] << " " << v1[3] << "*" << std::endl;
+				std::cout << v2[0] << " " << v2[1] << " " << v2[2] << " " << v2[3] << "*" << std::endl;
+				std::cout << v3[0] << " " << v3[1] << " " << v3[2] << " " << v3[3] << "*" << std::endl;
+				std::cout << "***************************\n";*/
 				
 				vertexGL2.push_back(v1[0]); vertexGL2.push_back(v1[1]); vertexGL2.push_back(v1[2]); vertexGL2.push_back(v1[3]);
 				vertexGL2.push_back(v2[0]); vertexGL2.push_back(v2[1]); vertexGL2.push_back(v2[2]); vertexGL2.push_back(v2[3]);
@@ -221,20 +221,27 @@ std::vector<float> listV0;
 std::vector<float> listV1;
 
 //Bresenham’s Line Drawing Algorithm
-void line(int x0, int y0, int z0, int x1, int y1, int z1, int a, float color1[], float color2[]) { 
+void line(float x0, float y0, float z0, float x1, float y1, float z1, int a, float color1[], float color2[]) { 
     bool steep = false; 
     if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
     if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
     float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; 
 
-    float derror = std::abs(dy/float(dx)); 
+    float derror = 0; 
     float error = 0; 
     int y = y0; 
-    int derrorZ = std::abs(dz/float(dx)); 
-    int errorZ = 0; 
-    int z = z0; 
+    
+    float derrorZ = 0;	
+    float errorZ = 0; 
+    float z = z0; 
   	float colorF[3] = {1, 1,1};
   	float f;
+
+  	if (dx != 0) {
+    	derror = std::abs(dy/float(dx)); 
+    	derrorZ = std::abs(dz/float(dx)); 
+    }
+  	
     for (int x=x0; x<=x1; x++) { 
     	if (steep) { 
     		if (getZBuffer(y, x) > z){
@@ -247,6 +254,8 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a, float color1[],
     			if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
     			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
     			setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
+    			//std::cout << z0 << " " << getZBuffer(y, x) << std::endl;
+    			//std::cout << "***************\n";
     			setZBuffer(y, x, z);
     		}
     	} 
@@ -261,6 +270,8 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a, float color1[],
     			if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
     			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
     			setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
+    			//std::cout << z1 << " " << getZBuffer(x, y) << std::endl;
+    			//std::cout << "***************\n";
     			setZBuffer(x, y, z);
     		} 
     	}
@@ -294,10 +305,9 @@ void line(int x0, int y0, int z0, int x1, int y1, int z1, int a, float color1[],
         	y += (y1>y0?1:-1); 
         	error -= 1.0f;       	
         }
-        if (errorZ > 0.5) { 
-        	z += (z1>z0?1:-1); 
-        	errorZ -= 1.0f; 
-        }       
+       	
+       	z += errorZ;
+       	errorZ = 0;
     } 	
 }
 
@@ -306,7 +316,7 @@ Vec3 reflect(Vec3 I, Vec3 N){
 	return I - 2.0f*Vec3::dot(N, I)*N;
 }
 void raster(){
-	int u1, u2, u3, v1, v2, v3, n1, n2, n3;
+	float u1, u2, u3, v1, v2, v3, n1, n2, n3;
 	float color1[3];
 	float color2[3];
 	float color3[3];
@@ -318,20 +328,20 @@ void raster(){
 	for (unsigned int i = 0, j = 0; i < vertexGL2.size(); i+=12, j+=9){//vertexGL2.size()
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
-		n1 = (int)round(vertexGL2[i + 2]);
+		n1 = vertexGL2[i + 2];
 
 		u2 = (int)round(vertexGL2[i + 4]);
 		v2 = (int)round(vertexGL2[i + 5]);
-		n2 = (int)round(vertexGL2[i + 6]);
+		n2 = vertexGL2[i + 6];
 
 		u3 = (int)round(vertexGL2[i + 8]);
 		v3 = (int)round(vertexGL2[i + 9]);
-		n3 = (int)round(vertexGL2[i + 10]);
+		n3 = vertexGL2[i + 10];
 
 		Vec3 vNormal1 = Vec3::unit_vector(Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
 		Vec3 vNormal2 = Vec3::unit_vector(Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
 		Vec3 vNormal3 = Vec3::unit_vector(Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
-
+		
 		//difuse
 		lightDir1 = (lightPos - Vec3(u1, v1, n1));  lightDir1 = Vec3::unit_vector(lightDir1);
 		diff = std::max(Vec3::dot(lightDir1, vNormal1), 0.0f);
