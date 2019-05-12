@@ -221,7 +221,7 @@ std::vector<float> listV0;
 std::vector<float> listV1;
 
 //Bresenham’s Line Drawing Algorithm
-void line(float x0, float y0, float z0, float x1, float y1, float z1, int a, float color1[], float color2[]) { 
+void line(float x0, float y0, float z0, float x1, float y1, float z1, int a, Vec3 color1, Vec3 color2) { 
     bool steep = false; 
     if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
     if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
@@ -315,89 +315,61 @@ void line(float x0, float y0, float z0, float x1, float y1, float z1, int a, flo
 Vec3 reflect(Vec3 I, Vec3 N){
 	return I - 2.0f*Vec3::dot(N, I)*N;
 }
-void raster(){
-	float u1, u2, u3, v1, v2, v3, n1, n2, n3;
-	float color1[3];
-	float color2[3];
-	float color3[3];
-	Vec3 lightDir1, lightDir2, lightDir3;
-	float spec;
-	Vec3 viewDir;
-	float diff;
 
-	for (unsigned int i = 0, j = 0; i < vertexGL2.size(); i+=12, j+=9){//vertexGL2.size()
+Vec3 shading(float u, float v, float n, float w, float normalX, float normalY, float normalZ){
+
+	Vec3 vNormal = Vec3::unit_vector(Vec3(normalX  , normalY, normalZ));
+	float spec = 0.0f;
+
+	//difuse
+	Vec3 lightDir = Vec3::unit_vector(lightPos - Vec3(u, v, n));  
+	float diff = std::max(Vec3::dot(lightDir, vNormal), 0.0f);
+
+	//Specular
+	if (diff > 0.0) {
+		Vec3 viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u, v, n));
+		//Vec3 reflectDir = reflect(-lightDir1, vNormal1);  
+		Vec3 h = Vec3::unit_vector(lightDir+viewDir);
+		spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
+	}
+
+	Vec3 color =  (Vec3(ambientColor[0], ambientColor[1], ambientColor[2]) + 
+					Vec3(diffuseColor[0], diffuseColor[1], diffuseColor[2])*diff +
+					Vec3(specularColor[0], specularColor[1], specularColor[2])*spec)*lightColor;
+
+	if (color[0] > 1.0f) {color[0] = 1.0f;} else if (color[0] < 0.0f) {color[0] = 0.0f;}
+	if (color[1] > 1.0f) {color[1] = 1.0f;} else if (color[1] < 0.0f) {color[1] = 0.0f;}
+	if (color[2] > 1.0f) {color[2] = 1.0f;} else if (color[2] < 0.0f) {color[2] = 0.0f;}
+
+	return color;
+}
+
+void raster(){
+	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3;
+	
+	for (unsigned int i = 0, j = 0; i < vertexGL2.size(); i+=12, j+=9){
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
 		n1 = vertexGL2[i + 2];
+		w1 = vertexGL2[i + 3];
 
 		u2 = (int)round(vertexGL2[i + 4]);
 		v2 = (int)round(vertexGL2[i + 5]);
 		n2 = vertexGL2[i + 6];
+		w2 = vertexGL2[i + 7];
 
 		u3 = (int)round(vertexGL2[i + 8]);
 		v3 = (int)round(vertexGL2[i + 9]);
 		n3 = vertexGL2[i + 10];
+		w3 = vertexGL2[i + 11];
 
 		Vec3 vNormal1 = Vec3::unit_vector(Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
 		Vec3 vNormal2 = Vec3::unit_vector(Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
 		Vec3 vNormal3 = Vec3::unit_vector(Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
-		
-		//difuse
-		lightDir1 = (lightPos - Vec3(u1, v1, n1));  lightDir1 = Vec3::unit_vector(lightDir1);
-		diff = std::max(Vec3::dot(lightDir1, vNormal1), 0.0f);
 
-		//Specular
-		if (diff > 0.0) {
-			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u1, v1, n1));
-			//Vec3 reflectDir = reflect(-lightDir1, vNormal1);  
-			Vec3 h = Vec3::unit_vector(lightDir1+viewDir);
-			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
-			//specular = sColor*spec*lightColor; 
-
-		}
-		
-		color1[0] = (ambientColor[0] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[0]; 
-		color1[1] = (ambientColor[1] + diffuseColor[1]*diff + specularColor[1]*spec)*lightColor[1]; 
-		color1[2] = (ambientColor[2] + diffuseColor[2]*diff + specularColor[2]*spec)*lightColor[2];
-
-		lightDir2 = (lightPos - Vec3(u2, v2, n2));  lightDir2 = Vec3::unit_vector(lightDir2);
-		diff = std::max(Vec3::dot(lightDir2, vNormal2), 0.0f);
-
-		//Specular
-		if (diff > 0.0) {
-			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u2, v2, n2));
-			//Vec3 reflectDir = reflect(-lightDir2, vNormal2);  
-			Vec3 h = Vec3::unit_vector(lightDir2+viewDir);
-			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
-			//specular = sColor*spec*lightColor; 
-
-		}
-
-		color2[0] = (ambientColor[0] + diffuseColor[0]*diff+ specularColor[0]*spec)*lightColor[0]; 
-		color2[1] = (ambientColor[1] + diffuseColor[0]*diff+ specularColor[1]*spec)*lightColor[1]; 
-		color2[2] = (ambientColor[2] + diffuseColor[0]*diff+ specularColor[2]*spec)*lightColor[2];
-
-		lightDir3 = (lightPos - Vec3(u2, v2, n2));  lightDir3 = Vec3::unit_vector(lightDir3);
-		diff = std::max(Vec3::dot(lightDir3, vNormal3), 0.0f);
-
-		//Specular
-		if (diff > 0.0) {
-			viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u3, v3, n3));
-			//Vec3 reflectDir = reflect(-lightDir3, vNormal3);  
-			Vec3 h = Vec3::unit_vector(lightDir3+viewDir);
-			spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
-			//specular = sColor*spec*lightColor; 
-
-		}
-
-		color3[0] = (ambientColor[0] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[0]; 
-		color3[1] = (ambientColor[1] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[1]; 
-		color3[2] = (ambientColor[2] + diffuseColor[0]*diff + specularColor[0]*spec)*lightColor[2];
-
-		if (color1[0] > 1.0f) {color1[0] = 1.0f;} else if (color1[0] < 0.0f) {color1[0] = 0.0f;}
-		if (color2[1] > 1.0f) {color2[1] = 1.0f;} else if (color2[1] < 0.0f) {color2[1] = 0.0f;}
-		if (color3[2] > 1.0f) {color3[2] = 1.0f;} else if (color3[2] < 0.0f) {color3[2] = 0.0f;}
-
+		Vec3 color1 = shading(u1, v1, n1, w1, vNormal1[0], vNormal1[1], vNormal1[2]);
+		Vec3 color2 = shading(u2, v2, n2, w2, vNormal2[0], vNormal2[1], vNormal2[2]);
+		Vec3 color3 = shading(u3, v3, n3, w3, vNormal3[0], vNormal3[1], vNormal3[2]);
 		
 		listV0.clear();
 		listV1.clear();
@@ -409,12 +381,10 @@ void raster(){
 					line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3, color1, color2);
 				}
 			}
-		}else if (typeFormRender == 1) {
-		
+		}else if (typeFormRender == 1) {		
 			line(u1, v1, n1, u2, v2, n2, 0, color1, color2);
 			line(u1, v1, n1, u3, v3, n3, 1, color1, color3);
-			line(u2, v2, n2, u3, v3, n3, 3, color2, color3);
-			
+			line(u2, v2, n2, u3, v3, n3, 3, color2, color3);			
 		}
 	}
 }
