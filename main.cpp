@@ -51,6 +51,7 @@ int typeFormRender = 0;
 bool closeGL = true;
 bool backFaceGL = true;
 bool ccw = false;
+bool phongGL = false;
 
 int width = 800;
 int height = 600;
@@ -161,13 +162,13 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles, float vertexNormal[])
 		v2[1] = vertex[i*9 + 4];
 		v2[2] = vertex[i*9 + 5];
 		v2[3] = 1;
-		n2[0] = vertexNormal[i*9]; n2[1] = vertexNormal[i*9 + 1]; n2[2] = vertexNormal[i*9 + 2];
+		n2[0] = vertexNormal[i*9 +3]; n2[1] = vertexNormal[i*9 + 4]; n2[2] = vertexNormal[i*9 + 5];
 
 		v3[0] = vertex[i*9 + 6];
 		v3[1] = vertex[i*9 + 7];
 		v3[2] = vertex[i*9 + 8];
 		v3[3] = 1;
-		n3[0] = vertexNormal[i*9]; n3[1] = vertexNormal[i*9 + 1]; n3[2] = vertexNormal[i*9 + 2];
+		n3[0] = vertexNormal[i*9 + 6]; n3[1] = vertexNormal[i*9 + 7]; n3[2] = vertexNormal[i*9 + 8];
 
 		mat4Vec(v1, mvp);
 		mat4Vec(v2, mvp);
@@ -222,114 +223,6 @@ std::vector<float> colorsV0;
 std::vector<float> listV1;
 std::vector<float> colorsV1;
 
-//Bresenham’s Line Drawing Algorithm
-void line(float x0, float y0, float z0, float x1, float y1, float z1, int a, Vec3 color1, Vec3 color2) { 
-    bool steep = false; 
-    if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
-    if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
-    float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; 
-
-    float derror = 0; 
-    float error = 0; 
-    int y = y0; 
-    
-    float derrorZ = 0;	
-    float errorZ = 0; 
-    float z = z0; 
-  	float colorF[3] = {0, 0, 0};
-  	float f;
-
-  	if (dx != 0) {
-    	derror = std::abs(dy/float(dx)); 
-    	derrorZ = std::abs(dz/float(dx)); 
-    }
-  	
-    for (int x=x0; x<=x1; x++) { 
-
-    	if (steep) { 
-    		if (y1==y0) {f = 0;} else {f = ((float(y-y0)/float(dy)));}
-    		colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
-    		colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
-    		colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
-    		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
-    		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
-    		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
-
-    		if (getZBuffer(y, x) > z){
-    			
-    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    			setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
-    			//std::cout << z0 << " " << getZBuffer(y, x) << std::endl;
-    			//std::cout << "***************\n";
-    			setZBuffer(y, x, z);
-    		}
-    	} else { 
-    		if (x1==x0) {f = 0;} else {f = ((float(x-x0)/float(dx)));}
-    		colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
-    		colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
-    		colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
-    		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
-    		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
-    		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
-
-    		if (getZBuffer(x, y) > z){
-    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    			setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
-    			//std::cout << z1 << " " << getZBuffer(x, y) << std::endl;
-    			//std::cout << "***************\n";
-    			setZBuffer(x, y, z);
-    		} 
-    	}
-
-    	//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    	//std::cout << "***************\n";
-
-    	if ( a == 0 ){
-    		if (steep){
-    			listV0.push_back(y);
-    			listV0.push_back(x);
-    			listV0.push_back(z);
-    		}else {
-        		listV0.push_back(x);
-        		listV0.push_back(y);
-        		listV0.push_back(z);
-        	}
-
-        	colorsV0.push_back(colorF[0]);
-        	colorsV0.push_back(colorF[1]);
-        	colorsV0.push_back(colorF[2]);
-        }else if (a == 1){
-        	if (steep){
-        		listV1.push_back(y);
-    			listV1.push_back(x);
-    			listV1.push_back(z);
-    		}else{
-        		listV1.push_back(x);
-        		listV1.push_back(y);
-        		listV1.push_back(z);
-        	}
-        	colorsV1.push_back(colorF[0]);
-        	colorsV1.push_back(colorF[1]);
-        	colorsV1.push_back(colorF[2]);
-        }  
-
-        error += derror; 
-        errorZ += derrorZ; 
-        
-        if (error > 0.5) { 
-        	y += (y1>y0?1:-1); 
-        	error -= 1.0f;       	
-        }
-       	
-       	z += errorZ;
-       	errorZ = 0;
-    } 	
-}
-
-
-Vec3 reflect(Vec3 I, Vec3 N){
-	return I - 2.0f*Vec3::dot(N, I)*N;
-}
 
 Vec3 shading(float u, float v, float n, float w, float normalX, float normalY, float normalZ){
 
@@ -359,6 +252,186 @@ Vec3 shading(float u, float v, float n, float w, float normalX, float normalY, f
 	return color;
 }
 
+//Bresenham’s Line Drawing Algorithm
+void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2) { 
+    bool steep = false; 
+    if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
+    if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
+    float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; float dw = w1-w0;
+
+    float derror = 0; 
+    float error = 0; 
+    int y = y0; 
+    
+    float derrorZ = 0;	
+    float derrorW = 0;	
+
+    float errorZ = 0; 
+    float z = z0; 
+  	float colorF[3] = {0, 0, 0};
+  	float f;
+  	float errorW = 0;
+  	float w;
+
+	Vec3 n;
+
+
+  	if (dx != 0) {
+    	derror = std::abs(dy/float(dx)); 
+    	derrorZ = std::abs(dz/float(dx)); 
+    	derrorW = std::abs(dw/float(dx)); 
+
+    }
+
+    Vec3 n1 = color1;
+    Vec3 n2 = color2;
+    
+    for (int x=x0; x<=x1; x++) { 
+    	if (steep) { 
+    		if (y1==y0) {f = 0;} else {f = ((float(y-y0)/float(dy)));}
+
+    		if (phongGL){
+    			n[0] = n2[0]*f + (1.0f-f)*n1[0];
+	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
+    			n[2] = n2[2]*f + (1.0f-f)*n1[2];
+    			
+    			/*if ((n[0] == n1[0])){
+    				std::cout << n[0] << " " << n[1] << " " << n[2] << " " << f << std::endl;
+    				std::cout << n1[0] << " " << n1[1] << " " << n1[2] << " " << (n[0] != n1[0]) << std::endl;
+    				std::cout << n2[0] << " " << n2[1] << " " << n2[2] << " " << (n[0] != n1[0]) << std::endl;
+    				std::cout << "******************\n";
+    			}*/
+    			Vec3 nn = Vec3::unit_vector(n);
+    			Vec3 c = shading(y, x, z, w, nn[0], nn[1], nn[2]);	
+    			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];	
+    		}
+    		else{
+    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
+    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
+    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    		}
+
+    		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
+    		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
+    		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
+
+    		if (getZBuffer(y, x) > z){
+    			
+    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
+    			setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
+    			//std::cout << z0 << " " << getZBuffer(y, x) << std::endl;
+    			//std::cout << "***************\n";
+    			setZBuffer(y, x, z);
+    		}
+    	} else { 
+    		if (x1==x0) {f = 0;} else {f = ((float(x-x0)/float(dx)));}
+    		if (phongGL){
+    			
+    			n[0] = n2[0]*f + (1.0f-f)*n1[0];
+	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
+    			n[2] = n2[2]*f + (1.0f-f)*n1[2];
+    			//n = Vec3::unit_vector(n);
+    			Vec3 nn = Vec3::unit_vector(n);
+    			Vec3 c = shading(x, y, z, w, nn[0], nn[1], nn[2]);	
+    			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];
+    			/*if (n[0] != n1[0]){
+    			std::cout << n[0] << " " << n[1] << " " << n[2] << " " << f << std::endl;
+    			std::cout << n1[0] << " " << n1[1] << " " << n1[2] << std::endl;
+    			std::cout << n2[0] << " " << n2[1] << " " << n2[2] << std::endl;
+    			std::cout << "******************\n";
+    			}*/
+    		}
+    		else{
+    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
+    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
+    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    		}
+    		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
+    		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
+    		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
+
+    		if (getZBuffer(x, y) > z){
+    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
+    			setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
+    			//std::cout << z1 << " " << getZBuffer(x, y) << std::endl;
+    			//std::cout << "***************\n";
+    			setZBuffer(x, y, z);
+    		} 
+    	}
+
+    	//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
+    	//std::cout << "***************\n";
+
+    	if ( a == 0 ){
+    		if (steep){
+    			listV0.push_back(y);
+    			listV0.push_back(x);
+    			listV0.push_back(z);
+    			listV0.push_back(w);
+    		}else {
+        		listV0.push_back(x);
+        		listV0.push_back(y);
+        		listV0.push_back(z);
+        		listV0.push_back(w);
+        	}
+        	if (phongGL){
+        		colorsV0.push_back(n[0]);
+        		colorsV0.push_back(n[1]);
+        		colorsV0.push_back(n[2]);
+
+        	}else{
+        		colorsV0.push_back(colorF[0]);
+        		colorsV0.push_back(colorF[1]);
+        		colorsV0.push_back(colorF[2]);
+        	}
+        }else if (a == 1){
+        	if (steep){
+        		listV1.push_back(y);
+    			listV1.push_back(x);
+    			listV1.push_back(z);
+    			listV1.push_back(w);
+
+    		}else{
+        		listV1.push_back(x);
+        		listV1.push_back(y);
+        		listV1.push_back(z);
+        		listV1.push_back(w);
+        	}
+        	if (phongGL){
+        		colorsV1.push_back(n[0]);
+        		colorsV1.push_back(n[1]);
+        		colorsV1.push_back(n[2]);
+
+        	}else{
+        		colorsV1.push_back(colorF[0]);
+        		colorsV1.push_back(colorF[1]);
+        		colorsV1.push_back(colorF[2]);
+        	}
+        }  
+
+        error += derror; 
+        errorZ += derrorZ; 
+        errorW += derrorW; 
+        
+        if (error > 0.5) { 
+        	y += (y1>y0?1:-1); 
+        	error -= 1.0f;       	
+        }
+       	
+       	z += errorZ;
+       	errorZ = 0;
+       	w += errorW;
+       	errorW = 0;
+    } 	
+}
+
+
+Vec3 reflect(Vec3 I, Vec3 N){
+	return I - 2.0f*Vec3::dot(N, I)*N;
+}
+
+
+
 void raster(){
 	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3;
 	
@@ -378,31 +451,49 @@ void raster(){
 		n3 = vertexGL2[i + 10];
 		w3 = vertexGL2[i + 11];
 
-		Vec3 vNormal1 = Vec3::unit_vector(Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
-		Vec3 vNormal2 = Vec3::unit_vector(Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
-		Vec3 vNormal3 = Vec3::unit_vector(Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
+		Vec3 vNormal1 = (Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
+		Vec3 vNormal2 = (Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
+		Vec3 vNormal3 = (Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
 
-		Vec3 color1 = shading(u1, v1, n1, w1, vNormal1[0], vNormal1[1], vNormal1[2]);
-		Vec3 color2 = shading(u2, v2, n2, w2, vNormal2[0], vNormal2[1], vNormal2[2]);
-		Vec3 color3 = shading(u3, v3, n3, w3, vNormal3[0], vNormal3[1], vNormal3[2]);
-		
+		Vec3 color1, color2, color3;
+
+		if (phongGL == false){
+			vNormal1 = Vec3::unit_vector(vNormal1);
+			vNormal2 = Vec3::unit_vector(vNormal2);
+			vNormal3 = Vec3::unit_vector(vNormal3);
+			color1 = shading(u1, v1, n1, w1, vNormal1[0], vNormal1[1], vNormal1[2]);
+			color2 = shading(u2, v2, n2, w2, vNormal2[0], vNormal2[1], vNormal2[2]);
+			color3 = shading(u3, v3, n3, w3, vNormal3[0], vNormal3[1], vNormal3[2]);
+		}else{
+			color1 = vNormal1;
+			color2 = vNormal2;
+			color3 = vNormal3;
+
+
+			/*std::cout << color1[0] << " " << color1[1] << " " << color1[2] << std::endl;
+    		std::cout << color2[0] << " " << color2[1] << " " << color2[2] << std::endl;
+    		std::cout << color3[0] << " " << color3[1] << " " << color3[2] << std::endl;
+    		std::cout << "******************\n";*/
+			
+		}
+
 		listV0.clear();
 		listV1.clear();
 		colorsV0.clear();
 		colorsV1.clear();
 
 		if (typeFormRender == 0){
-			line(u1, v1, n1, u2, v2, n2, 0, color1, color2);
-			line(u1, v1, n1, u3, v3, n3, 1, color1, color3);
-			for (unsigned int i = 0; i < listV0.size(); i+=3){
-				for (unsigned int j = 0; j < listV1.size(); j+=3){
-					line(listV0[i], listV0[i + 1], listV0[i + 2], listV1[j], listV1[j + 1], listV1[j+2], 3, Vec3(colorsV0[i], colorsV0[i+1], colorsV0[i+2]), Vec3(colorsV1[j], colorsV1[j+1], colorsV1[j+2])); //color1, color2
+			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2);
+			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3);
+			for (unsigned int i = 0, ii = 0; i < listV0.size(); i+=4, ii+=3){
+				for (unsigned int j = 0, jj=0; j < listV1.size(); j+=4, jj+=3){
+					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2])); //color1, color2
 				}
 			}
 		}else if (typeFormRender == 1) {		
-			line(u1, v1, n1, u2, v2, n2, 0, color1, color2);
-			line(u1, v1, n1, u3, v3, n3, 1, color1, color3);
-			line(u2, v2, n2, u3, v3, n3, 3, color2, color3);			
+			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2);
+			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3);
+			line(u2, v2, n2, w2, u3, v3, n3, w3, 3, color2, color3);			
 		}
 	}
 }
