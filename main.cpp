@@ -61,7 +61,7 @@ int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
 
-Vec3 lightPos = Vec3(0.0, 1000.0, 0.0);
+Vec3 lightPos = Vec3(0.0, 20000.0, 0.0);
 Vec3 lightColor = Vec3(1.0, 1.0, 1.0);
 
 
@@ -84,6 +84,9 @@ Vec4 getColorBuffer(int i, int j){
 }
 
 void setColorBuffer(int i, int j, Vec4 val){
+	if (val[0] > 1.0f) {val[0] = 1.0f;} else if (val[0] < 0.0f) {val[0] = 0.0f;}
+	if (val[1] > 1.0f) {val[1] = 1.0f;} else if (val[1] < 0.0f) {val[1] = 0.0f;}
+	if (val[2] > 1.0f) {val[2] = 1.0f;} else if (val[2] < 0.0f) {val[2] = 0.0f;}
 	colorBuffer[j*width + i] = val;
 }
 
@@ -103,6 +106,7 @@ Mat4GL modelGL, viewGl, projGl, viewPortGL;
 
 std::vector<GLfloat> vertexGL;
 std::vector<GLfloat> vertexGL2;
+std::vector<GLfloat> vertexGL3;
 std::vector<GLfloat> vertexNormalGL;
 
 
@@ -142,11 +146,56 @@ void mat4Vec (float vertex[], Mat4GL mvp){
 	vertex[3] = d;
 }
 
-void compute(float vertex[], Mat4GL mvp, int numtriangles, float vertexNormal[]){
+std::vector<float> listV0;
+std::vector<float> colorsV0;
+std::vector<float> listV1;
+std::vector<float> colorsV1;
+
+
+Vec3 reflect(Vec3 I, Vec3 N){
+	return I - 2.0f*Vec3::dot(N, I)*N;
+}
+
+
+Vec3 shading(float u, float v, float n, float w, float normalX, float normalY, float normalZ){
+
+	glm::vec3  glmNormal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(model)))*glm::normalize(glm::vec3(normalX, normalY, normalZ)));
+	glm::vec3 vPos = glm::vec3(u, v, n);
+	glm::vec3 lightDirGLM = glm::normalize(glm::vec3(lightPos[0], lightPos[1], lightPos[2]) - vPos);  
+
+	glm::vec3 ambientGLM = glm::vec3(ambientColor[0], ambientColor[1], ambientColor[2])*glm::vec3(lightColor[0], lightColor[1], lightColor[2]);
+
+	float diffGLM = glm::max(glm::dot(lightDirGLM, glmNormal), 0.0f);
+	glm::vec3 diffuseGLM = glm::vec3(diffuseColor[0], diffuseColor[1], diffuseColor[2])*glm::vec3(lightColor[0], lightColor[1], lightColor[2])*diffGLM;
+	
+	glm::vec3 specular = glm::vec3(0.0f);
+	//Specular
+	if (diffGLM > 0.0) {
+		//Vec3 viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u, v, n));
+		glm::vec3 viewDir = -glm::normalize(glm::vec3(eye[0], eye[1], eye[2]) - vPos);
+		glm::vec3 reflectDir = glm::reflect(-lightDirGLM, glmNormal);  
+		float spec = glm::pow(glm::max(glm::dot(viewDir, reflectDir), 0.0f), materialShine);
+		specular = glm::vec3(specularColor[0], specularColor[1], specularColor[2])*spec*glm::vec3(lightColor[0], lightColor[1], lightColor[2]);  
+	}
+
+	glm::vec3 resultGLM = (ambientGLM + diffuseGLM + specular)*glm::vec3(color[0], color[1], color[2]);
+
+	glm::vec3 gamma = glm::vec3(1.0/2.2);
+    resultGLM = glm::pow(resultGLM, gamma);
+
+	if (resultGLM[0] > 1.0f) {resultGLM[0] = 1.0f;} else if (resultGLM[0] < 0.0f) {resultGLM[0] = 0.0f;}
+	if (resultGLM[1] > 1.0f) {resultGLM[1] = 1.0f;} else if (resultGLM[1] < 0.0f) {resultGLM[1] = 0.0f;}
+	if (resultGLM[2] > 1.0f) {resultGLM[2] = 1.0f;} else if (resultGLM[2] < 0.0f) {resultGLM[2] = 0.0f;}
+
+	return Vec3(resultGLM[0], resultGLM[1], resultGLM[2]);
+}
+
+void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, float vertexNormal[]){
 	float v1[4], v2[4], v3[4];
 	float n1[4], n2[4], n3[4];
 	vertexGL.clear();
 	vertexGL2.clear();
+	vertexGL3.clear();
 	vertexNormalGL.clear();
 
 	float a;
@@ -156,107 +205,103 @@ void compute(float vertex[], Mat4GL mvp, int numtriangles, float vertexNormal[])
 		v1[1] = vertex[i*9 + 1];
 		v1[2] = vertex[i*9 + 2];
 		v1[3] = 1;
-		n1[0] = vertexNormal[i*9]; n1[1] = vertexNormal[i*9 + 1]; n1[2] = vertexNormal[i*9 + 2];
+		n1[0] = vertexNormal[i*9]; n1[1] = vertexNormal[i*9 + 1]; n1[2] = vertexNormal[i*9 + 2]; n1[3] = 1;
 
 		v2[0] = vertex[i*9 + 3];
 		v2[1] = vertex[i*9 + 4];
 		v2[2] = vertex[i*9 + 5];
 		v2[3] = 1;
-		n2[0] = vertexNormal[i*9 +3]; n2[1] = vertexNormal[i*9 + 4]; n2[2] = vertexNormal[i*9 + 5];
+		n2[0] = vertexNormal[i*9 +3]; n2[1] = vertexNormal[i*9 + 4]; n2[2] = vertexNormal[i*9 + 5]; n2[3] = 1;
 
 		v3[0] = vertex[i*9 + 6];
 		v3[1] = vertex[i*9 + 7];
 		v3[2] = vertex[i*9 + 8];
 		v3[3] = 1;
-		n3[0] = vertexNormal[i*9 + 6]; n3[1] = vertexNormal[i*9 + 7]; n3[2] = vertexNormal[i*9 + 8];
+		n3[0] = vertexNormal[i*9 + 6]; n3[1] = vertexNormal[i*9 + 7]; n3[2] = vertexNormal[i*9 + 8]; n3[3] = 1;
+		
+		
 
-		mat4Vec(v1, mvp);
-		mat4Vec(v2, mvp);
-		mat4Vec(v3, mvp);
+		mat4Vec(v1, modelGL);
+		mat4Vec(v2, modelGL);
+		mat4Vec(v3, modelGL);
+
+		Vec3 c1 = shading(v1[0], v1[1], v1[2], v1[3], n1[0], n1[1], n1[2]);
+		Vec3 c2 = shading(v2[0], v2[1], v2[2], v2[3], n2[0], n2[1], n2[2]);
+		Vec3 c3 = shading(v3[0], v3[1], v3[2], v3[3], n3[0], n3[1], n3[2]);
+
+		mat4Vec(v1, (projGl*viewGl));
+		mat4Vec(v2, (projGl*viewGl));
+		mat4Vec(v3, (projGl*viewGl));
 
 		//Verificando se está no NDC e se W > 0
 		if (v1[3] > 0 && v2[3] > 0 && v3[3] > 0 && -1.0f < (v1[2]/v1[3]) && (v1[2]/v1[3]) < 1.0f && -1.0f < (v2[2]/v2[3]) && (v2[2]/v2[3]) < 1.0f && -1.0f < (v3[2]/v3[3]) && (v3[2]/v3[3]) <1.0f &&
 			(v1[0]/v1[3]) < 1.0f && -1.0f < (v1[0]/v1[3]) && (v2[0]/v2[3]) < 1.0f && -1.0f < (v2[0]/v2[3]) && (v3[0]/v3[3]) < 1.0f && -1.0f < (v3[0]/v3[3]) &&
 			(v1[1]/v1[3]) < 1.0f && -1.0f < (v1[1]/v1[3]) && (v2[1]/v2[3]) < 1.0f && -1.0f < (v2[1]/v2[3]) && (v3[1]/v3[3]) < 1.0f && -1.0f < (v3[1]/v3[3])){
 
+			c1 = c1/v1[3];
+			c2 = c2/v2[3];
+			c3 = c3/v3[3];
+			float w1 = v1[3];
+			float w2 = v2[3];
+			float w3 = v3[3];
+
 			//Divisao por w
 			v1[0] = v1[0]/v1[3]; v1[1] = v1[1]/v1[3]; v1[2] = v1[2]/v1[3]; v1[3] = v1[3]/v1[3]; 
 			v2[0] = v2[0]/v2[3]; v2[1] = v2[1]/v2[3]; v2[2] = v2[2]/v2[3]; v2[3] = v2[3]/v2[3];
 			v3[0] = v3[0]/v3[3]; v3[1] = v3[1]/v3[3]; v3[2] = v3[2]/v3[3]; v3[3] = v3[3]/v3[3]; 
+			
+
+			
 
 			a = 0.5*((v1[0]*v2[1] - v2[0]*v1[1]) + v2[0]*v3[1] - v3[0]*v2[1] + v3[0]*v1[1] - v1[0]*v3[1]);
 			if ((a < 0 and ccw) or (a > 0 and !ccw)or !backFaceGL) {
+				
 				vertexGL.push_back(v1[0]);
 				vertexGL.push_back(v1[1]);
 				vertexGL.push_back(v2[0]);
 				vertexGL.push_back(v2[1]);
 				vertexGL.push_back(v3[0]);
 				vertexGL.push_back(v3[1]);
-
-				//std::cout << v1[0] << " " << v1[1] << " " << v1[2] << " " << v1[3] << "*" << std::endl;
-				//std::cout << v2[0] << " " << v2[1] << " " << v2[2] << " " << v2[3] << "*" << std::endl;
-				//std::cout << v3[0] << " " << v3[1] << " " << v3[2] << " " << v3[3] << "*" << std::endl;
 				
 				mat4Vec(v1, viewPortGL);
 				mat4Vec(v2, viewPortGL);
 				mat4Vec(v3, viewPortGL);
 
-				/*std::cout << v1[0] << " " << v1[1] << " " << v1[2] << " " << v1[3] << "*" << std::endl;
-				std::cout << v2[0] << " " << v2[1] << " " << v2[2] << " " << v2[3] << "*" << std::endl;
-				std::cout << v3[0] << " " << v3[1] << " " << v3[2] << " " << v3[3] << "*" << std::endl;
-				std::cout << "***************************\n";*/
-				
+				v1[3] = w1;
+				v2[3] = w2;
+				v3[3] = w3;
+							
 				vertexGL2.push_back(v1[0]); vertexGL2.push_back(v1[1]); vertexGL2.push_back(v1[2]); vertexGL2.push_back(v1[3]);
 				vertexGL2.push_back(v2[0]); vertexGL2.push_back(v2[1]); vertexGL2.push_back(v2[2]); vertexGL2.push_back(v2[3]);
 				vertexGL2.push_back(v3[0]); vertexGL2.push_back(v3[1]); vertexGL2.push_back(v3[2]); vertexGL2.push_back(v3[3]);
 
-				vertexNormalGL.push_back(n1[0]); vertexNormalGL.push_back(n1[1]); vertexNormalGL.push_back(n1[2]);
-				vertexNormalGL.push_back(n2[0]); vertexNormalGL.push_back(n2[1]); vertexNormalGL.push_back(n2[2]);
-				vertexNormalGL.push_back(n3[0]); vertexNormalGL.push_back(n3[1]); vertexNormalGL.push_back(n3[2]);
+
+				vertexGL3.push_back(c1[0]); vertexGL3.push_back(c1[1]); vertexGL3.push_back(c1[2]);
+				vertexGL3.push_back(c2[0]); vertexGL3.push_back(c2[1]); vertexGL3.push_back(c2[2]);
+				vertexGL3.push_back(c3[0]); vertexGL3.push_back(c3[1]); vertexGL3.push_back(c3[2]);
+
+
 			}
 		}	
 	}	
 }
 
-std::vector<float> listV0;
-std::vector<float> colorsV0;
-std::vector<float> listV1;
-std::vector<float> colorsV1;
 
-
-Vec3 shading(float u, float v, float n, float w, float normalX, float normalY, float normalZ){
-
-	Vec3 vNormal = Vec3::unit_vector(Vec3(normalX  , normalY, normalZ));
-	float spec = 0.0f;
-
-	//difuse
-	Vec3 lightDir = Vec3::unit_vector(lightPos - Vec3(u, v, n));  
-	float diff = std::max(Vec3::dot(lightDir, vNormal), 0.0f);
-
-	//Specular
-	if (diff > 0.0) {
-		Vec3 viewDir = Vec3::unit_vector(Vec3(eye[0], eye[1], eye[2]) - Vec3(u, v, n));
-		//Vec3 reflectDir = reflect(-lightDir1, vNormal1);  
-		Vec3 h = Vec3::unit_vector(lightDir+viewDir);
-		spec = std::pow(std::max(Vec3::dot(viewDir, h), 0.0f), materialShine);
-	}
-
-	Vec3 color =  (Vec3(ambientColor[0], ambientColor[1], ambientColor[2]) + 
-					Vec3(diffuseColor[0], diffuseColor[1], diffuseColor[2])*diff +
-					Vec3(specularColor[0], specularColor[1], specularColor[2])*spec)*lightColor;
-
-	if (color[0] > 1.0f) {color[0] = 1.0f;} else if (color[0] < 0.0f) {color[0] = 0.0f;}
-	if (color[1] > 1.0f) {color[1] = 1.0f;} else if (color[1] < 0.0f) {color[1] = 0.0f;}
-	if (color[2] > 1.0f) {color[2] = 1.0f;} else if (color[2] < 0.0f) {color[2] = 0.0f;}
-
-	return color;
-}
 
 //Bresenham’s Line Drawing Algorithm
 void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2) { 
+	
     bool steep = false; 
     if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
-    if (x0 > x1) { std::swap(x0, x1); std::swap(y0, y1);} 
+
+    
+    if (x0 > x1) { 
+    	std::swap(x0, x1); 
+    	std::swap(y0, y1); 
+    	std::swap(z0, z1); 
+    	std::swap(color1, color2);
+	} 
+    
     float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; float dw = w1-w0;
 
     float derror = 0; 
@@ -269,9 +314,9 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     float errorZ = 0; 
     float z = z0; 
   	float colorF[3] = {0, 0, 0};
-  	float f;
+  	double f;
   	float errorW = 0;
-  	float w;
+  	float w = w0;
 
 	Vec3 n;
 
@@ -294,73 +339,48 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			n[0] = n2[0]*f + (1.0f-f)*n1[0];
 	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
     			n[2] = n2[2]*f + (1.0f-f)*n1[2];
-    			
-    			/*if ((n[0] == n1[0])){
-    				std::cout << n[0] << " " << n[1] << " " << n[2] << " " << f << std::endl;
-    				std::cout << n1[0] << " " << n1[1] << " " << n1[2] << " " << (n[0] != n1[0]) << std::endl;
-    				std::cout << n2[0] << " " << n2[1] << " " << n2[2] << " " << (n[0] != n1[0]) << std::endl;
-    				std::cout << "******************\n";
-    			}*/
-    			Vec3 nn = Vec3::unit_vector(n);
-    			Vec3 c = shading(y, x, z, w, nn[0], nn[1], nn[2]);	
+    			  			
+    			Vec3 c = shading(y, x, z, w, n[0], n[1], n[2]);	
     			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];	
     		}
     		else{
-    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
-    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
-    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    			colorF[0] = (color2[0]*f + (1.0f-f)*color1[0]);
+    			colorF[1] = (color2[1]*f + (1.0f-f)*color1[1]);
+    			colorF[2] = (color2[2]*f + (1.0f-f)*color1[2]);
     		}
-
-    		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
-    		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
-    		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
-
+    		
+    		
     		if (getZBuffer(y, x) > z){
-    			
-    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    			setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
-    			//std::cout << z0 << " " << getZBuffer(y, x) << std::endl;
-    			//std::cout << "***************\n";
+    			setColorBuffer(y, x, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f)); 
     			setZBuffer(y, x, z);
     		}
     	} else { 
-    		if (x1==x0) {f = 0;} else {f = ((float(x-x0)/float(dx)));}
+    		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
     		if (phongGL){
     			
     			n[0] = n2[0]*f + (1.0f-f)*n1[0];
 	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
     			n[2] = n2[2]*f + (1.0f-f)*n1[2];
-    			//n = Vec3::unit_vector(n);
-    			Vec3 nn = Vec3::unit_vector(n);
-    			Vec3 c = shading(x, y, z, w, nn[0], nn[1], nn[2]);	
+    			Vec3 c = shading(x, y, z, w, n[0], n[1], n[2]);	
     			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];
-    			/*if (n[0] != n1[0]){
-    			std::cout << n[0] << " " << n[1] << " " << n[2] << " " << f << std::endl;
-    			std::cout << n1[0] << " " << n1[1] << " " << n1[2] << std::endl;
-    			std::cout << n2[0] << " " << n2[1] << " " << n2[2] << std::endl;
-    			std::cout << "******************\n";
-    			}*/
     		}
     		else{
-    			colorF[0] = color2[0]*f + (1.0f-f)*color1[0];
-    			colorF[1] = color2[1]*f + (1.0f-f)*color1[1];
-    			colorF[2] = color2[2]*f + (1.0f-f)*color1[2];
+    			colorF[0] = (color2[0]*f + (1.0f-f)*color1[0]);
+    			colorF[1] = (color2[1]*f + (1.0f-f)*color1[1]);
+    			colorF[2] = (color2[2]*f + (1.0f-f)*color1[2]);
     		}
     		if (colorF[0] > 1.0f) {colorF[0] = 1.0f;} else if (colorF[0] < 0.0f) {colorF[0] = 0.0f;}
     		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
     		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
 
+    		
+
     		if (getZBuffer(x, y) > z){
-    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    			setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
-    			//std::cout << z1 << " " << getZBuffer(x, y) << std::endl;
-    			//std::cout << "***************\n";
+    			setColorBuffer(x, y, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f));
     			setZBuffer(x, y, z);
     		} 
     	}
-
-    	//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << " " << f << std::endl;
-    	//std::cout << "***************\n";
+    	   	
 
     	if ( a == 0 ){
     		if (steep){
@@ -426,9 +446,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 }
 
 
-Vec3 reflect(Vec3 I, Vec3 N){
-	return I - 2.0f*Vec3::dot(N, I)*N;
-}
 
 
 
@@ -436,6 +453,7 @@ void raster(){
 	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3;
 	
 	for (unsigned int i = 0, j = 0; i < vertexGL2.size(); i+=12, j+=9){
+
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
 		n1 = vertexGL2[i + 2];
@@ -451,30 +469,21 @@ void raster(){
 		n3 = vertexGL2[i + 10];
 		w3 = vertexGL2[i + 11];
 
-		Vec3 vNormal1 = (Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
-		Vec3 vNormal2 = (Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
-		Vec3 vNormal3 = (Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
+		//Vec3 vNormal1 = (Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
+		//Vec3 vNormal2 = (Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
+		//Vec3 vNormal3 = (Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
 
 		Vec3 color1, color2, color3;
 
 		if (phongGL == false){
-			vNormal1 = Vec3::unit_vector(vNormal1);
-			vNormal2 = Vec3::unit_vector(vNormal2);
-			vNormal3 = Vec3::unit_vector(vNormal3);
-			color1 = shading(u1, v1, n1, w1, vNormal1[0], vNormal1[1], vNormal1[2]);
-			color2 = shading(u2, v2, n2, w2, vNormal2[0], vNormal2[1], vNormal2[2]);
-			color3 = shading(u3, v3, n3, w3, vNormal3[0], vNormal3[1], vNormal3[2]);
+			color1 = Vec3(vertexGL3[j], vertexGL3[j+1], vertexGL3[j+2]);
+			color2 = Vec3(vertexGL3[j+3], vertexGL3[j+4], vertexGL3[j+5]);
+			color3 = Vec3(vertexGL3[j+6], vertexGL3[j+7], vertexGL3[j+8]);
+
 		}else{
-			color1 = vNormal1;
-			color2 = vNormal2;
-			color3 = vNormal3;
-
-
-			/*std::cout << color1[0] << " " << color1[1] << " " << color1[2] << std::endl;
-    		std::cout << color2[0] << " " << color2[1] << " " << color2[2] << std::endl;
-    		std::cout << color3[0] << " " << color3[1] << " " << color3[2] << std::endl;
-    		std::cout << "******************\n";*/
-			
+		//	color1 = vNormal1;
+		//	color2 = vNormal2;
+		//	color3 = vNormal3;
 		}
 
 		listV0.clear();
@@ -490,9 +499,10 @@ void raster(){
 					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2])); //color1, color2
 				}
 			}
+
 		}else if (typeFormRender == 1) {		
-			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2);
-			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3);
+			line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
+			line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);
 			line(u2, v2, n2, w2, u3, v3, n3, w3, 3, color2, color3);			
 		}
 	}
@@ -518,7 +528,7 @@ void updateMVP(void){
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
 
 	if (closeGL){
-		compute (mesh->getVertexPositions(),projGl*viewGl*modelGL, mesh->getNumTriangles(), mesh->getVertexNormal());
+		compute (mesh->getVertexPositions(),projGl, viewGl, modelGL, mesh->getNumTriangles(), mesh->getVertexNormal());
 		
 		float vertexData[]  = { -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 
 								1.0f, -1.0f, -1.0f, -1.0f, -1.0f,1.0f};
