@@ -51,7 +51,7 @@ int typeFormRender = 0;
 bool closeGL = true;
 bool backFaceGL = true;
 bool ccw = false;
-bool phongGL = false;
+bool phongGL = true;
 
 int width = 800;
 int height = 600;
@@ -219,8 +219,6 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 		v3[3] = 1;
 		n3[0] = vertexNormal[i*9 + 6]; n3[1] = vertexNormal[i*9 + 7]; n3[2] = vertexNormal[i*9 + 8]; n3[3] = 1;
 		
-		
-
 		mat4Vec(v1, modelGL);
 		mat4Vec(v2, modelGL);
 		mat4Vec(v3, modelGL);
@@ -228,6 +226,16 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 		Vec3 c1 = shading(v1[0], v1[1], v1[2], v1[3], n1[0], n1[1], n1[2]);
 		Vec3 c2 = shading(v2[0], v2[1], v2[2], v2[3], n2[0], n2[1], n2[2]);
 		Vec3 c3 = shading(v3[0], v3[1], v3[2], v3[3], n3[0], n3[1], n3[2]);
+
+		if (phongGL == false){
+			c1 = shading(v1[0], v1[1], v1[2], v1[3], n1[0], n1[1], n1[2]);
+			c2 = shading(v2[0], v2[1], v2[2], v2[3], n2[0], n2[1], n2[2]);
+			c3 = shading(v3[0], v3[1], v3[2], v3[3], n3[0], n3[1], n3[2]);
+		}else{
+			c1 = Vec3(n1[0], n1[1], n1[2]);
+			c2 = Vec3(n2[0], n2[1], n2[2]);
+			c3 = Vec3(n3[0], n3[1], n3[2]);
+		}
 
 		mat4Vec(v1, (projGl*viewGl));
 		mat4Vec(v2, (projGl*viewGl));
@@ -340,8 +348,9 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
     			n[2] = n2[2]*f + (1.0f-f)*n1[2];
     			  			
-    			Vec3 c = shading(y, x, z, w, n[0], n[1], n[2]);	
+    			Vec3 c = shading(y, x, z, w, n[0]/(1/w), n[1]/(1/w), n[2]/(1/w));	
     			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];	
+    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << std::endl;
     		}
     		else{
     			colorF[0] = (color2[0]*f + (1.0f-f)*color1[0]);
@@ -351,17 +360,20 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		
     		
     		if (getZBuffer(y, x) > z){
-    			setColorBuffer(y, x, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f)); 
+    			if (!phongGL){
+    				setColorBuffer(y, x, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f)); 
+    			}else{
+    				setColorBuffer(y, x, Vec4(colorF[0], colorF[1], colorF[2], 1.0f)); 
+    			}
     			setZBuffer(y, x, z);
     		}
     	} else { 
     		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
-    		if (phongGL){
-    			
+    		if (phongGL){    			
     			n[0] = n2[0]*f + (1.0f-f)*n1[0];
 	    		n[1] = n2[1]*f + (1.0f-f)*n1[1];
     			n[2] = n2[2]*f + (1.0f-f)*n1[2];
-    			Vec3 c = shading(x, y, z, w, n[0], n[1], n[2]);	
+    			Vec3 c = shading(x, y, z, w, n[0]/(1/w), n[1]/(1/w), n[2]/(1/w));	
     			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];
     		}
     		else{
@@ -376,7 +388,11 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		
 
     		if (getZBuffer(x, y) > z){
-    			setColorBuffer(x, y, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f));
+    			if(!phongGL){
+    				setColorBuffer(x, y, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f));
+    			}else{
+    				setColorBuffer(x, y, Vec4(colorF[0], colorF[1], colorF[2], 1.0f));
+    			}
     			setZBuffer(x, y, z);
     		} 
     	}
@@ -475,16 +491,16 @@ void raster(){
 
 		Vec3 color1, color2, color3;
 
-		if (phongGL == false){
+		//if (phongGL == false){
 			color1 = Vec3(vertexGL3[j], vertexGL3[j+1], vertexGL3[j+2]);
 			color2 = Vec3(vertexGL3[j+3], vertexGL3[j+4], vertexGL3[j+5]);
 			color3 = Vec3(vertexGL3[j+6], vertexGL3[j+7], vertexGL3[j+8]);
 
-		}else{
+		//}else{
 		//	color1 = vNormal1;
 		//	color2 = vNormal2;
 		//	color3 = vNormal3;
-		}
+		//}
 
 		listV0.clear();
 		listV1.clear();
