@@ -19,7 +19,18 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			}
 			updateMVP();
 		break;
-	glFrontFace(typeFrontFace);
+		case 'b' :
+		case 'B' :
+			std::cout << "The actual size is: (" << width << ", " << height << ")" << std::endl;
+			std::cout << "Enter the new value of Width:" << std::endl;
+			std::cin >> width;
+			std::cout << "Enter the new value of height:" << std::endl;
+			std::cin >> height;
+			std::cout << "The actual size is: (" << width << ", " << height << ")" << std::endl;
+			glutReshapeWindow(width, height);
+			updateMVP();
+			display();
+			break;
 		case 'c' :
 		case 'C' : {
 			std::cout << "The actual colors in RGB is:" << std::endl;

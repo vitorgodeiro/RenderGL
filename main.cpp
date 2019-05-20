@@ -258,9 +258,6 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 			v2[0] = v2[0]/v2[3]; v2[1] = v2[1]/v2[3]; v2[2] = v2[2]/v2[3]; v2[3] = v2[3]/v2[3];
 			v3[0] = v3[0]/v3[3]; v3[1] = v3[1]/v3[3]; v3[2] = v3[2]/v3[3]; v3[3] = v3[3]/v3[3]; 
 			
-
-			
-
 			a = 0.5*((v1[0]*v2[1] - v2[0]*v1[1]) + v2[0]*v3[1] - v3[0]*v2[1] + v3[0]*v1[1] - v1[0]*v3[1]);
 			if ((a < 0 and ccw) or (a > 0 and !ccw)or !backFaceGL) {
 				
@@ -350,7 +347,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			  			
     			Vec3 c = shading(y, x, z, w, n[0]/(1/w), n[1]/(1/w), n[2]/(1/w));	
     			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];	
-    			//std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << std::endl;
     		}
     		else{
     			colorF[0] = (color2[0]*f + (1.0f-f)*color1[0]);
@@ -385,8 +381,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		if (colorF[1] > 1.0f) {colorF[1] = 1.0f;} else if (colorF[1] < 0.0f) {colorF[1] = 0.0f;}
     		if (colorF[2] > 1.0f) {colorF[2] = 1.0f;} else if (colorF[2] < 0.0f) {colorF[2] = 0.0f;}
 
-    		
-
     		if (getZBuffer(x, y) > z){
     			if(!phongGL){
     				setColorBuffer(x, y, Vec4(colorF[0]/(1/w), colorF[1]/(1/w), colorF[2]/(1/w), 1.0f));
@@ -395,8 +389,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			}
     			setZBuffer(x, y, z);
     		} 
-    	}
-    	   	
+    	}    	   	
 
     	if ( a == 0 ){
     		if (steep){
@@ -461,10 +454,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     } 	
 }
 
-
-
-
-
 void raster(){
 	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3;
 	
@@ -504,19 +493,15 @@ void raster(){
 					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2])); //color1, color2
 				}
 			}
-
 		}else if (typeFormRender == 1) {		
 			line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
 			line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);
 			line(u2, v2, n2, w2, u3, v3, n3, w3, 3, color2, color3);			
 		}
 		else if(typeFormRender == 2){
-
 			if (getZBuffer(u1, v1) > n1){ setColorBuffer(u1, v1, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u1, v1, n1);}
 			if (getZBuffer(u2, v2) > n2){ setColorBuffer(u2, v2, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u2, v2, n2);}
 			if (getZBuffer(u3, v3) > n3){ setColorBuffer(u3, v3, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u3, v3, n3);}
-    			
-
 		}
 	}
 }
@@ -535,7 +520,7 @@ void updateMVP(void){
 	modelGL = Mat4GL(1.0f)*Transformation::translation(-center[0], -center[1], -center[2]);
 	glm::vec3 p = eye + lookDir;
 	viewGl = Mat4GL::lookAt(Vec3(eye[0], eye[1], eye[2]), Vec3(p[0], p[1], p[2]), Vec3(up[0],up[1],up[2]));
-	projGl = Mat4GL::perspective(30.0f, 1.3333f, zNear, zFar);
+	projGl = Mat4GL::perspective(30.0f, width/((float)height), zNear, zFar);
 	viewPortGL = Mat4GL::viewPort(0, width, height, 0);
 	
 	glUniform3fv(uniEye, 1, glm::value_ptr(eye));
@@ -703,9 +688,6 @@ void init (std::string pathMesh){
 
    	glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
    	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);	
-
-
-
 }
 
 #include "include/keyboard.h"
