@@ -51,7 +51,7 @@ int typeFormRender = 0;
 bool closeGL = true;
 bool backFaceGL = true;
 bool ccw = false;
-bool phongGL = true;
+bool phongGL = false;
 
 int width = 800;
 int height = 600;
@@ -61,7 +61,7 @@ int type = GL_TRIANGLES;
 int typePolMode = GL_FILL;
 int typeFrontFace = GL_CCW;
 
-Vec3 lightPos = Vec3(0.0, 20000.0, 0.0);
+Vec3 lightPos = Vec3(20000.0, 20000.0, 20000.0);
 Vec3 lightColor = Vec3(1.0, 1.0, 1.0);
 
 
@@ -485,22 +485,11 @@ void raster(){
 		n3 = vertexGL2[i + 10];
 		w3 = vertexGL2[i + 11];
 
-		//Vec3 vNormal1 = (Vec3(vertexNormalGL[j]  , vertexNormalGL[j+1], vertexNormalGL[j+2]));
-		//Vec3 vNormal2 = (Vec3(vertexNormalGL[j+3], vertexNormalGL[j+4], vertexNormalGL[j+5]));
-		//Vec3 vNormal3 = (Vec3(vertexNormalGL[j+6], vertexNormalGL[j+7], vertexNormalGL[j+8]));
-
 		Vec3 color1, color2, color3;
 
-		//if (phongGL == false){
-			color1 = Vec3(vertexGL3[j], vertexGL3[j+1], vertexGL3[j+2]);
-			color2 = Vec3(vertexGL3[j+3], vertexGL3[j+4], vertexGL3[j+5]);
-			color3 = Vec3(vertexGL3[j+6], vertexGL3[j+7], vertexGL3[j+8]);
-
-		//}else{
-		//	color1 = vNormal1;
-		//	color2 = vNormal2;
-		//	color3 = vNormal3;
-		//}
+		color1 = Vec3(vertexGL3[j], vertexGL3[j+1], vertexGL3[j+2]);
+		color2 = Vec3(vertexGL3[j+3], vertexGL3[j+4], vertexGL3[j+5]);
+		color3 = Vec3(vertexGL3[j+6], vertexGL3[j+7], vertexGL3[j+8]);
 
 		listV0.clear();
 		listV1.clear();
@@ -520,6 +509,14 @@ void raster(){
 			line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
 			line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);
 			line(u2, v2, n2, w2, u3, v3, n3, w3, 3, color2, color3);			
+		}
+		else if(typeFormRender == 2){
+
+			if (getZBuffer(u1, v1) > n1){ setColorBuffer(u1, v1, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u1, v1, n1);}
+			if (getZBuffer(u2, v2) > n2){ setColorBuffer(u2, v2, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u2, v2, n2);}
+			if (getZBuffer(u3, v3) > n3){ setColorBuffer(u3, v3, Vec4(color[0], color[1], color[2], 1.0f)); setZBuffer(u3, v3, n3);}
+    			
+
 		}
 	}
 }

@@ -67,7 +67,9 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			break;}
 		case 'p' :
 		case 'P' : 
-			type = GL_POINTS;
+			//type = GL_POINTS;
+			typeFormRender = 2;
+			updateMVP();
 			break;
 		case 'q' :
 		case 'Q' : 
