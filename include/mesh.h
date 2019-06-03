@@ -23,6 +23,7 @@ class Mesh {
 		float *vertexPositions;
 		float *vertexNormal;
 		float *vertexColorIndex;
+		float *vertexTexturePositions;
 
 		float *faceNormal;
 		
@@ -30,6 +31,8 @@ class Mesh {
 		float *diffuseColor;
 		float *specularColor; 
 		float *materialShine;
+
+		char texture;
 		
 	public:
 		Mesh(std::string file);
