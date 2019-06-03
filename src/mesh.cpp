@@ -1,13 +1,14 @@
 #include "../include/mesh.h"
 
-float *Mesh::getVertexPositions() 	{ return this->vertexPositions; }
-float *Mesh::getVertexNormal() 		{ return this->vertexNormal; }
-float *Mesh::getVertexColorIndex() 	{ return this->vertexColorIndex; }
-float *Mesh::getAmbientColor()  	{ return this->ambientColor; }
-float *Mesh::getDiffuseColor()  	{ return this->diffuseColor; }
-float *Mesh::getSpecularColor() 	{ return this->specularColor; }
-float *Mesh::getMaterialShine() 	{ return this->materialShine; }
-float *Mesh::getFaceNormal() 		{return this->faceNormal; }
+float *Mesh::getVertexPositions() 		 { return this->vertexPositions; }
+float *Mesh::getVertexNormal() 			 { return this->vertexNormal; }
+float *Mesh::getVertexColorIndex() 		 { return this->vertexColorIndex; }
+float *Mesh::getAmbientColor()  		 { return this->ambientColor; }
+float *Mesh::getDiffuseColor()  		 { return this->diffuseColor; }
+float *Mesh::getSpecularColor() 	 	 { return this->specularColor; }
+float *Mesh::getMaterialShine() 		 { return this->materialShine; }
+float *Mesh::getFaceNormal() 			 { return this->faceNormal; }
+float *Mesh::getVertexTexturePositions() { return this->vertexTexturePositions; }
 
 int Mesh::getNumVertex() { return numberTriangles*3; }
 int Mesh::getNumTriangles() { return numberTriangles; }

@@ -42,6 +42,7 @@ class Mesh {
 		float *getVertexPositions();
 		float *getVertexNormal();
 		float *getVertexColorIndex();
+		float *getVertexCTexturePositions();
 
 		float *getFaceNormal();
 
