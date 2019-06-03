@@ -7,8 +7,8 @@ float *Mesh::getAmbientColor()  		 { return this->ambientColor; }
 float *Mesh::getDiffuseColor()  		 { return this->diffuseColor; }
 float *Mesh::getSpecularColor() 	 	 { return this->specularColor; }
 float *Mesh::getMaterialShine() 		 { return this->materialShine; }
-float *Mesh::getFaceNormal() 			 { return this->faceNormal; }
-float *Mesh::getVertexTexturePositions() { return this->vertexTexturePositions; }
+float *Mesh::getFaceNormal() 			 {return this->faceNormal; }
+float *Mesh::getVertexTexturePositions() {return this->vertexTexturePositions;}
 
 int Mesh::getNumVertex() { return numberTriangles*3; }
 int Mesh::getNumTriangles() { return numberTriangles; }
@@ -26,7 +26,7 @@ Mesh::Mesh(std::string file){
 	this->vertexNormal = new float[9*this->numberTriangles];
 	this->vertexColorIndex = new float[3*this->numberTriangles];
 	this->faceNormal = new float[3*this->numberTriangles];
-	this->vertexTexturePositions = new float[2*this->numberTriangles];
+	this->vertexTexturePositions = new float[6*this->numberTriangles];
 	
 	fscanf(fp,"Material count = %d\n", &numberMaterials);
 
@@ -45,6 +45,7 @@ Mesh::Mesh(std::string file){
 	fscanf(fp,"Texture = %s\n", &texture);
 
 	fscanf(fp, "%c", &ch);
+	while(ch!= '\n') {fscanf(fp, "%c", &ch);}
 	while(ch!= '\n') {fscanf(fp, "%c", &ch);}
 
 	for (int nTriangleActual = 0; nTriangleActual < this->numberTriangles; nTriangleActual++){
@@ -69,21 +70,22 @@ Mesh::Mesh(std::string file){
 														 &(vertexColorIndex[nTriangleActual*3]));
 			this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
 		}else if (this->texture == 'Y'){
+			
 			fscanf(fp, "v%c %f %f %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
 														 &(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
-					  									 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[posUpdate]), &(vertexTexturePositions[posUpdate+1]));	
+					  									 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[nTriangleActual*6]), &(vertexTexturePositions[nTriangleActual*6+1]));	
 			this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);	
 
         	posUpdate += 3;
 			fscanf(fp, "v%c %f %f %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
 														 &(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
-														 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[posUpdate]), &(vertexTexturePositions[posUpdate+1]));
+														 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[nTriangleActual*6+2]), &(vertexTexturePositions[nTriangleActual*6+3]));
 			this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
         	
         	posUpdate += 3;
 			fscanf(fp, "v%c %f %f %f %f %f %f %f %f %f\n", &a, &(vertexPositions[posUpdate]), &(vertexPositions[posUpdate + 1]), &(vertexPositions[posUpdate + 2]),
 														 &(vertexNormal[posUpdate]), &(vertexNormal[posUpdate + 1]), &(vertexNormal[posUpdate + 2]),
-														 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[posUpdate]), &(vertexTexturePositions[posUpdate+1]));
+														 &(vertexColorIndex[nTriangleActual*3]), &(vertexTexturePositions[nTriangleActual*6+4]), &(vertexTexturePositions[nTriangleActual*6+5]));
 			this->box.update(vertexPositions[posUpdate], vertexPositions[posUpdate+1], vertexPositions[posUpdate+2]);
 		}
 

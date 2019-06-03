@@ -9,10 +9,6 @@
 * @brief The class that describe BBoux of object
 */
 class Bbox {
-
-	private:
-		float xMin, yMin, zMin;
-		float xMax, yMax, zMax;
 				
 	public:
 
@@ -22,6 +18,8 @@ class Bbox {
 		float *getMin(){return new float[3]{xMin, yMin, zMin};}
 		float *getMax(){return new float[3]{xMax, yMax, zMax};}
 		float *getCenter();
+		float xMin, yMin, zMin;
+		float xMax, yMax, zMax;
 		
 };
 #endif
