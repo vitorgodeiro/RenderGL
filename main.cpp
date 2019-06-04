@@ -379,8 +379,9 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 
 	Vec3 n;
 
-	int px = 0;
-    int py = 0;
+	float px = 0;
+    float py = 0;
+    //int pos = 0;
 
 
   	if (dx != 0) {
@@ -398,13 +399,17 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		if (y1==y0) {f = 0;} else {f = ((float(y-y0)/float(dy)));}
     		
     		if (texture == 'Y'){
-    			int px = (tx2*f + (1.0f-f)*tx1)*h_;
-    			int py = (ty2*f + (1.0f-f)*ty1)*w_;
-    			int pos =  py*w_ + px;  
+    			px = (tx2*f + (1.0f-f)*tx1);
+    			py = (ty2*f + (1.0f-f)*ty1);
+    			int px_ = px*(h_-1);
+    			int py_ = py*(w_-1);
+    			int pos = (w_*(py_) + px_)*3; 
     			
     			colorF[0] = (float) (data[pos]/255.0f);//w;
     			colorF[1] = (float) (data[pos+1]/255.0f);//w;
     			colorF[2] = (float) (data[pos+2]/255.0f);//w;
+
+
     		} else {
 	    		if (phongGL){
 	    			n[0] = n2[0]*f + (1.0f-f)*n1[0];
@@ -435,15 +440,15 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		
     		if (texture == 'Y'){
     			
-    			int px = (tx2*f + (1.0f-f)*tx1)*(h_-1);
-    			int py = (ty2*f + (1.0f-f)*ty1)*(w_-1);
-    			int pos = (w_*(py) + px)*3;    			
+    			px = (tx2*f + (1.0f-f)*tx1); //
+    			py = (ty2*f + (1.0f-f)*ty1); //
+    			int px_ = px*(h_-1);
+    			int py_ = py*(w_-1);
+    			int pos = (w_*(py_) + px_)*3;    	
 
     			colorF[0] = (float) (data[pos]/255.0f);
     			colorF[1] = (float) (data[pos+1]/255.0f);
-    			colorF[2] = (float) (data[pos+2]/255.0f);
-
-    			
+    			colorF[2] = (float) (data[pos+2]/255.0f);    			
     		} else if (texture == 'N'){
 	    		if (phongGL){    			
 	    			n[0] = n2[0]*f + (1.0f-f)*n1[0];
@@ -544,7 +549,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 void raster(){
 	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3, tx1, tx2, tx3, ty1, ty2, ty3;;
 	
-	for (unsigned int i = 0, j = 0, t = 0; i < 12; i+=12, j+=9, t+=6){
+	for (unsigned int i = 0, j = 0, t = 0; i < vertexGL2.size(); i+=12, j+=9, t+=6){
 
 		u1 = (int)round(vertexGL2[i]);
 		v1 = (int)round(vertexGL2[i + 1]);
@@ -581,19 +586,14 @@ void raster(){
 		colorsV0.clear();
 		colorsV1.clear();
 
-		std::cout << u1 << " " << v1 << std::endl;
-		std::cout << u2 << " " << v2 << std::endl;
-		std::cout << u3 << " " << v3 << std::endl;
-
 		if (typeFormRender == 0){
-			std::cout << "OPAAA===" << tx1 << " " << tx2 << " " << tx3 << std::endl;
-			//line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, ty1, tx2, ty2);
-			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, ty1, tx3, ty3);
-			/*for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
+			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, 1-ty1, tx2, 1-ty2);
+			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, 1-ty1, tx3, 1-ty3);
+			for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
 				for (unsigned int j = 0, jj=0, jjj = 0; j < listV1.size(); j+=4, jj+=3, jjj+=2){
 					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2]), listT0[iii], listT0[iii+1], listT1[jjj], listT1[jjj+1]); //color1, color2
 				}
-			}*/
+			}
 		}else if (typeFormRender == 1) {		
 		//	line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
 			//line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);
