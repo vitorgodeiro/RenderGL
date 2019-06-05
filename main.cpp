@@ -19,6 +19,8 @@
 #define COSTHETA float(cos(THETA))
 #define SINTHETA float(sin(THETA))
 
+int TEXTURE_TYPE = 1;
+
 GLint uniModel;
 GLint uniView;
 GLint uniMVP;
@@ -355,11 +357,29 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
     	px_ = round(px*(h_ - 1));
     	py_ = round(py*(w_ - 1));
     	pos = (w_*py_ + px_)*3; 
+    	colorF[0] = (float) (data[pos]/255.0f);//w;
+		colorF[1] = (float) (data[pos+1]/255.0f);//w;
+		colorF[2] = (float) (data[pos+2]/255.0f);//w;
+    } else if (type == 1){ //Bilinear Resampling
+    	px_ = px*(h_ - 1);
+    	py_ = py*(w_ - 1);
+    	int x = std::floor(px_);
+    	int y = std::floor(py_);
+    	float u = px_ - x;
+    	float v = py_ - y;
+
+    	float c1 = ((1-u)*data[(w_*y + x)*3]/w + u*data[(w_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3]/w + u*data[(w_*(y+1) + (x+1))*3]/w)*v;
+    	float c2 = ((1-u)*data[(w_*y + x)*3+1]/w + u*data[(w_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+1]/w + u*data[(w_*(y+1) + (x+1))*3+1]/w)*v;
+    	float c3 = ((1-u)*data[(w_*y + x)*3+2]/w + u*data[(w_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+2]/w + u*data[(w_*(y+1) + (x+1))*3+2]/w)*v;
+
+
+
+    	colorF[0] = (float) (c1/255.0f)/(1/w);//w;
+		colorF[1] = (float) (c2/255.0f)/(1/w);//w;
+		colorF[2] = (float) (c3/255.0f)/(1/w);//w;
     }
 
-	colorF[0] = (float) (data[pos]/255.0f);//w;
-	colorF[1] = (float) (data[pos+1]/255.0f);//w;
-	colorF[2] = (float) (data[pos+2]/255.0f);//w;
+	
 }
 
 //Bresenham’s Line Drawing Algorithm
@@ -421,7 +441,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			py = py/(1/w);
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			setColorTexture(px, py, w, 0, colorF);
+    			setColorTexture(px, py, w, TEXTURE_TYPE, colorF);
 
     		} else {
 	    		if (phongGL){
@@ -458,7 +478,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			py = py/(1/w);	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			setColorTexture(px, py, w, 0, colorF);
+    			setColorTexture(px, py, w, TEXTURE_TYPE, colorF);
 
     		} else if (texture == 'N'){
 	    		if (phongGL){    			
