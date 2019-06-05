@@ -140,7 +140,7 @@ void initBuffers(){
 
 void setVertex(float vertex[], float * vertex_, int numVertex){
 	for (int i =0; i < numVertex; i++){
-		vertex[i] = vertex_[i];std::cout << vertex_[i] << std::endl;
+		vertex[i] = vertex_[i];
 	}	
 }
 
@@ -710,9 +710,9 @@ void updateMVP(void){
 		GLfloat vertexPositions[mesh->getNumVertex()*3];
 		setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
 		GLfloat vertexNormal[mesh->getNumVertex()*3];
-		std::cout << "NORMALL***\n";
 		setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
-
+		GLfloat vertexTexturePositions [mesh->getNumVertex()*2];
+		setVertex(vertexTexturePositions, mesh->getVertexTexturePositions(), mesh->getNumVertex()*2);
 		glGenVertexArrays(1, vao);
     	glBindVertexArray(vao[0]);
 
