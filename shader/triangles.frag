@@ -7,5 +7,5 @@ uniform sampler2D texture1;
 layout (location = 0) out vec4 fColor;
 
 void main() {
-    fColor = texture(texture1, texCoord);
+    fColor = vec4(1,1,1,1);
 }

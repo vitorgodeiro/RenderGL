@@ -54,7 +54,7 @@ float textY;
 
 int typeFormRender = 0;
 
-bool closeGL = true;
+bool closeGL = false;
 bool backFaceGL = true;
 bool ccw = false;
 bool phongGL = false;
@@ -140,7 +140,7 @@ void initBuffers(){
 
 void setVertex(float vertex[], float * vertex_, int numVertex){
 	for (int i =0; i < numVertex; i++){
-		vertex[i] = vertex_[i];
+		vertex[i] = vertex_[i];std::cout << vertex_[i] << std::endl;
 	}	
 }
 
@@ -357,10 +357,11 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
     	px_ = round(px*(h_ - 1));
     	py_ = round(py*(w_ - 1));
     	pos = (w_*py_ + px_)*3; 
-    	colorF[0] = (float) (data[pos]/255.0f);//w;
-		colorF[1] = (float) (data[pos+1]/255.0f);//w;
-		colorF[2] = (float) (data[pos+2]/255.0f);//w;
-    } else if (type == 1){ //Bilinear Resampling
+    	colorF[0] = (float) (data[pos]/255.0f);
+		colorF[1] = (float) (data[pos+1]/255.0f);
+		colorF[2] = (float) (data[pos+2]/255.0f);
+
+    } else if (type == 1){ //Bilinear Resampling    	
     	px_ = px*(h_ - 1);
     	py_ = py*(w_ - 1);
     	int x = std::floor(px_);
@@ -372,14 +373,10 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
     	float c2 = ((1-u)*data[(w_*y + x)*3+1]/w + u*data[(w_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+1]/w + u*data[(w_*(y+1) + (x+1))*3+1]/w)*v;
     	float c3 = ((1-u)*data[(w_*y + x)*3+2]/w + u*data[(w_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+2]/w + u*data[(w_*(y+1) + (x+1))*3+2]/w)*v;
 
-
-
-    	colorF[0] = (float) (c1/255.0f)/(1/w);//w;
-		colorF[1] = (float) (c2/255.0f)/(1/w);//w;
-		colorF[2] = (float) (c3/255.0f)/(1/w);//w;
-    }
-
-	
+    	colorF[0] = (float) (c1/255.0f)/(1/w);
+		colorF[1] = (float) (c2/255.0f)/(1/w);
+		colorF[2] = (float) (c3/255.0f)/(1/w);
+    }	
 }
 
 //Bresenham’s Line Drawing Algorithm
@@ -642,9 +639,7 @@ void raster(){
 	}
 }
 
-void updateMVP(void){
-
-	
+void updateMVP(void){	
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(-center[0], -center[1], -center[2])); 
 	view = glm::lookAt( eye, eye + lookDir, up);
 	proj = glm::perspective((float)( 30.0f * PI / 180.0f ), 1.3333f,zNear, zFar);
@@ -664,9 +659,6 @@ void updateMVP(void){
 	if (closeGL){
 		compute (mesh->getVertexPositions(),projGl, viewGl, modelGL, mesh->getNumTriangles(), mesh->getVertexNormal(), mesh->getVertexTexturePositions());
 		
-
-		std::cout << "TESTE == " << textX << " " << textY << std::endl;
-
 		float vertexData[]  = { -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 
 								1.0f, -1.0f, -1.0f, -1.0f, -1.0f,1.0f};
 
@@ -718,6 +710,7 @@ void updateMVP(void){
 		GLfloat vertexPositions[mesh->getNumVertex()*3];
 		setVertex(vertexPositions, mesh->getVertexPositions(), mesh->getNumVertex()*3);
 		GLfloat vertexNormal[mesh->getNumVertex()*3];
+		std::cout << "NORMALL***\n";
 		setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
 
 		glGenVertexArrays(1, vao);
@@ -770,9 +763,6 @@ void init (std::string pathMesh){
 	program = LoadShaders(shaders);
 	glUseProgram(program);
 
-
-
-
 	uniColor = glGetUniformLocation(program, "color");
 	
 	uniAmbientColor = glGetUniformLocation(program, "aColor");
@@ -786,7 +776,6 @@ void init (std::string pathMesh){
 	setVertex(ambientColor, mesh->getAmbientColor(), mesh->getnumberMaterials()*3);
 	setVertex(diffuseColor, mesh->getDiffuseColor(), mesh->getnumberMaterials()*3);
 	setVertex(specularColor, mesh->getSpecularColor(), mesh->getnumberMaterials()*3);
-	//setVertex(materialShine, mesh->getMaterialShine(), mesh->getnumberMaterials());
 	materialShine = mesh->getMaterialShine()[0];
 
 	GLfloat faceNormal[mesh->getNumVertex()];
