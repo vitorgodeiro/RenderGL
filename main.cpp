@@ -345,6 +345,23 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 
 
 
+void setColorTexture(float px, float py, float w, int type, float *colorF){
+	float px_; 
+    float py_; 
+    int pos; 
+
+    //Nearest-Neighbor Resampling
+    if (type == 0){
+    	px_ = round(px*(h_ - 1));
+    	py_ = round(py*(w_ - 1));
+    	pos = (w_*py_ + px_)*3; 
+    }
+
+	colorF[0] = (float) (data[pos]/255.0f);//w;
+	colorF[1] = (float) (data[pos+1]/255.0f);//w;
+	colorF[2] = (float) (data[pos+2]/255.0f);//w;
+}
+
 //Bresenham’s Line Drawing Algorithm
 void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2, float tx1, float ty1, float tx2, float ty2) { 
 	
@@ -398,33 +415,13 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
     		
     		if (texture == 'Y'){
-    			px = (tx2*f + (1.0f-f)*tx1);
-    			py = (ty2*f + (1.0f-f)*ty1);
-
+    			px = (tx2/w*f + (1.0f-f)*tx1/w);
+    			py = (ty2/w*f + (1.0f-f)*ty1/w);
+    			px = px/(1/w);
+    			py = py/(1/w);
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-
-    			float px_ = round(px*(h_ - 1));
-    			float py_ = round(py*(w_ - 1));
-    			int pos = (w_*py_ + px_)*3; 
-
-
-    			colorF[0] = (float) (data[pos]/255.0f);//w;
-    			colorF[1] = (float) (data[pos+1]/255.0f);//w;
-    			colorF[2] = (float) (data[pos+2]/255.0f);//w;
-
-
-    			/*if (px > 0.95 and py > 0.95){
-    				std::cout << tx1 << " " << tx2 << " " << f << std::endl;
-
-    				std::cout << ty1 << " " << ty2 << " " << f << std::endl;
-    				//std::cout << y0 << " " << y1 << " " << y << std::endl;
-    				//std::cout << px << " " << py << std::endl;
-    				//std::cout << px_ << " " << py_ << " " << pos << std::endl;
-    				std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << std::endl;
-    				std::cout << "***************************************\n";
-    			}*/
-
+    			setColorTexture(px, py, w, 0, colorF);
 
     		} else {
 	    		if (phongGL){
@@ -454,21 +451,15 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     	} else { 
     		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
     		
-    		if (texture == 'Y'){
-    			
-    			px = (tx2*f + (1.0f-f)*tx1); //
-    			py = (ty2*f + (1.0f-f)*ty1); //
+    		if (texture == 'Y'){    			
+    			px = (tx2/w*f + (1.0f-f)*tx1/w); //
+    			py = (ty2/w*f + (1.0f-f)*ty1/w); //
+    			px = px/(1/w);
+    			py = py/(1/w);	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			float px_ = round(px*(h_-1));
-    			float py_ = round(py*(w_-1));
-    			int pos = (w_*py_ + px_)*3;    	
+    			setColorTexture(px, py, w, 0, colorF);
 
-
-
-    			colorF[0] = (float) (data[pos]/255.0f);
-    			colorF[1] = (float) (data[pos+1]/255.0f);
-    			colorF[2] = (float) (data[pos+2]/255.0f);    			
     		} else if (texture == 'N'){
 	    		if (phongGL){    			
 	    			n[0] = n2[0]*f + (1.0f-f)*n1[0];
@@ -501,9 +492,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			listV0.push_back(z);
     			listV0.push_back(w);
     			listT0.push_back(px);
-        		listT0.push_back(py);
-        		
-        		
+        		listT0.push_back(py);        		
     		}else {
         		listV0.push_back(x);
         		listV0.push_back(y);
@@ -518,7 +507,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
         		colorsV0.push_back(n[2]);
 
         	}else{
-
         		colorsV0.push_back(colorF[0]);
         		colorsV0.push_back(colorF[1]);
         		colorsV0.push_back(colorF[2]);
@@ -531,9 +519,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			listV1.push_back(z);
     			listV1.push_back(w);
     			listT1.push_back(px);
-    			listT1.push_back(py);
-        		        		
-
+    			listT1.push_back(py);       		
     		}else{
         		listV1.push_back(x);
         		listV1.push_back(y);
@@ -611,25 +597,16 @@ void raster(){
 		colorsV1.clear();
 
 		if (typeFormRender == 0){
-
-			//if (v1 > v2) { std::swap(u1, u2); std::swap(v1, v2); std::swap(n1, n2); std::swap(w1, w2); std::swap(color1, color2); std::swap(tx1, tx2); std::swap(ty1, ty2); }
-			//if (v1 > v3) { std::swap(u1, u3); std::swap(v1, v3); std::swap(n1, n3); std::swap(w1, w3); std::swap(color1, color3); std::swap(tx1, tx3); std::swap(ty1, ty3); }
-			//if (v2 > v3) { std::swap(u2, u3); std::swap(v2, v3); std::swap(n2, n3); std::swap(w2, w3); std::swap(color2, color3); std::swap(tx2, tx3); std::swap(ty2, ty3); }
-
-
+			if (v1 > v2) { std::swap(u1, u2); std::swap(v1, v2); std::swap(n1, n2); std::swap(w1, w2); std::swap(color1, color2); std::swap(tx1, tx2); std::swap(ty1, ty2); }
+			if (v1 > v3) { std::swap(u1, u3); std::swap(v1, v3); std::swap(n1, n3); std::swap(w1, w3); std::swap(color1, color3); std::swap(tx1, tx3); std::swap(ty1, ty3); }
+			if (v2 > v3) { std::swap(u2, u3); std::swap(v2, v3); std::swap(n2, n3); std::swap(w2, w3); std::swap(color2, color3); std::swap(tx2, tx3); std::swap(ty2, ty3); }
 
 			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, 1-ty1, tx2, 1-ty2);
 			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, 1-ty1, tx3, 1-ty3);
 			
-
 			for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
 				for (unsigned int j = 0, jj=0, jjj = 0; j < listV1.size(); j+=4, jj+=3, jjj+=2){
-					
-						//std::cout << listV0[i] << " " << listV0[i+1] << " " << listV0[i+2] << " " << listV0[i+3] << std::endl;
-						//std::cout << listV1[j] << " " << listV1[j+1] << " " << listV1[j+2] << " " << listV1[j+3] << std::endl;
-						//std::cout << "*****************\n";
-						line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2]), listT0[iii], listT0[iii+1], listT1[jjj], listT1[jjj+1]); //color1, color2
-					
+					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2]), listT0[iii], listT0[iii+1], listT1[jjj], listT1[jjj+1]); //color1, color2					
 				}
 			}
 		}else if (typeFormRender == 1) {		
