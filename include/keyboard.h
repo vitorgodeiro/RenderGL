@@ -76,6 +76,11 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			std::cout << "The actual valor of Near Clipping Planes: " <<  zNear << std::endl;			
 			updateMVP();
 			break;}
+		case 'm':
+		case 'M':{
+			textureType++;
+			textureType = textureType % 3;
+		}
 		case 'p' :
 		case 'P' : 
 			//type = GL_POINTS;

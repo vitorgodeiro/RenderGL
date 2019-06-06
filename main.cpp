@@ -33,6 +33,7 @@ GLint uniMaterialShine ;
 GLint uniCloseGl;
 
 int checkShacder = 0;
+int textureType = 0;
 
 GLuint vao[1];
 GLuint vbo[1];
@@ -639,6 +640,26 @@ void raster(){
 	}
 }
 
+void setTextureType(){
+	switch (textureType){
+		case 0:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	    	std::cout << "Nearest\n";
+	    	break;
+	    case 1:
+	    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   	    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   	    	std::cout << "Linear\n";
+   	    	break;
+   	    case 2:
+   	    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   	    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+   	    	glGenerateMipmap(GL_TEXTURE_2D);
+   	    	std::cout << "MipMap\n";
+	}
+}
+
 void updateMVP(void){	
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(-center[0], -center[1], -center[2])); 
 	view = glm::lookAt( eye, eye + lookDir, up);
@@ -713,23 +734,46 @@ void updateMVP(void){
 		setVertex(vertexNormal, mesh->getVertexNormal(), mesh->getNumVertex()*3);
 		GLfloat vertexTexturePositions [mesh->getNumVertex()*2];
 		setVertex(vertexTexturePositions, mesh->getVertexTexturePositions(), mesh->getNumVertex()*2);
+		for (int i = 1; i < mesh->getNumVertex()*2; i+=2){
+			vertexTexturePositions[i] = 1 - vertexTexturePositions[i];
+		}
+
+
+
+		glGenTextures(1, &textureID);
+
+		glActiveTexture(GL_TEXTURE0);		
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w_, h_, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		setTextureType();
+
+		
+
+
+		
+		glBindTexture(GL_TEXTURE_2D, textureID);
+   		glUniform1i(glGetUniformLocation(program, "texture1"), 0);
+
+
 		glGenVertexArrays(1, vao);
     	glBindVertexArray(vao[0]);
 
     	glGenBuffers(1, vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexNormal), NULL, GL_STATIC_DRAW );
+    	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexTexturePositions) + sizeof(vertexNormal), NULL, GL_STATIC_DRAW ); //
     	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexPositions), vertexPositions);
-		glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexNormal), vertexNormal);
+    	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions), sizeof(vertexTexturePositions), vertexTexturePositions);
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexPositions) + sizeof(vertexTexturePositions), sizeof(vertexNormal), vertexNormal);
 
     	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
+    	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)sizeof(vertexPositions));
+    	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid *)(sizeof(vertexPositions) + sizeof(vertexTexturePositions)));
     	glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
-    	glUniform1i(uniCloseGl, 0);
-
-    	
+		glEnableVertexAttribArray(2);
+    	glUniform1i(uniCloseGl, 0);    	
 	}	
 }
 
