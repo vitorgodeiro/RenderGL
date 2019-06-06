@@ -80,6 +80,8 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 		case 'M':{
 			textureType++;
 			textureType = textureType % 3;
+			updateMVP();
+			break;
 		}
 		case 'p' :
 		case 'P' : 

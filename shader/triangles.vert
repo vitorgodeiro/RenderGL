@@ -99,7 +99,7 @@ subroutine uniform shadingType shading;
 
 void main() {
 
-	if (closeGL == 1) { gl_Position = vec4(vPosition, 1);} else {gl_Position = mvp*vec4(vPosition, 1);}
+	if (closeGL == 1) { gl_Position = vec4(vPosition[0], vPosition[1],0, 1);} else {gl_Position = mvp*vec4(vPosition, 1);}
     texCoord = vTexCoord;
     glColor = shading();
 }

@@ -19,8 +19,6 @@
 #define COSTHETA float(cos(THETA))
 #define SINTHETA float(sin(THETA))
 
-int TEXTURE_TYPE = 1;
-
 GLint uniModel;
 GLint uniView;
 GLint uniMVP;
@@ -244,8 +242,6 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 		v3[3] = 1;
 		n3[0] = vertexNormal[i*9 + 6]; n3[1] = vertexNormal[i*9 + 7]; n3[2] = vertexNormal[i*9 + 8]; n3[3] = 1;
 		text3[0] = texturePos[i*6+4]; text3[1] = texturePos[i*6+5]; 
-
-
 				
 		mat4Vec(v1, modelGL);
 		mat4Vec(v2, modelGL);
@@ -439,7 +435,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			py = py/(1/w);
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			setColorTexture(px, py, w, TEXTURE_TYPE, colorF);
+    			setColorTexture(px, py, w, textureType, colorF);
 
     		} else {
 	    		if (phongGL){
@@ -476,7 +472,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			py = py/(1/w);	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			setColorTexture(px, py, w, TEXTURE_TYPE, colorF);
+    			setColorTexture(px, py, w, textureType, colorF);
 
     		} else if (texture == 'N'){
 	    		if (phongGL){    			
@@ -724,7 +720,7 @@ void updateMVP(void){
     	/*glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     	glEnableVertexAttribArray(0);*/
 
-    	//glUniform1i(uniCloseGl, 1);
+    	glUniform1i(uniCloseGl, 1);
 		//glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
 
 	}else{
