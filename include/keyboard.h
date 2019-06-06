@@ -185,20 +185,24 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			if(checkShacder == 0){
 				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
-				phongGL = false;
+				std::cout << "Normal shading" << std::endl;
+				//phongGL = false;
 			}else if (checkShacder == 1){
 				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingGoroud);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
-				phongGL = true;
+				std::cout << "Goroud shading" << std::endl;
+				//phongGL = true;
 			}else if (checkShacder == 2){
 				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingGoroudFull);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
-				phongGL = false;
+				std::cout << "Goroud Full shading" << std::endl;
+				//phongGL = false;
 			}else if(checkShacder == 3){				
 				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingPhong);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingPhongF);
+				std::cout << "Phong shading" << std::endl;
 				checkShacder = -1;
-				phongGL = true;
+				//phongGL = true;
 			}
 			
 			
