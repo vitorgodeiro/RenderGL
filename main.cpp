@@ -341,7 +341,7 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
 }
 
 //Bresenham’s Line Drawing Algorithm
-void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2, float tx1, float ty1, float tx2, float ty2) { 
+void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, Vec3 color1, Vec3 color2, float tx1, float ty1, float tx2, float ty2) { 
 	ty1 = 1 - ty1;
 	ty2 = 1 - ty2;
 
@@ -354,14 +354,11 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     	std::swap(ty1, ty2);
 	}     
 
-    float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; float dw = w1-w0;
-
-
+    float dx = x1-x0; float dz = z1-z0; float dw = w1-w0;
     int y = y0; 
     
     float derrorZ = 0;	
-    float derrorW = 0;	
-
+    float derrorW = 0;
     
     float z = z0; 
   	float w = w0;
@@ -369,7 +366,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
   	float colorF[3] = {1, 1, 1};
   	float colorT[3] = {1, 1, 1};
   	double f;
-
 	Vec3 n;
 
 	float px = 0;
@@ -383,8 +379,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     Vec3 n1 = color1;
     Vec3 n2 = color2;
     
-    for (int x=x0; x<=x1; x++) { 
-    	
+    for (int x=x0; x<=x1; x++) {     	
     	if (getZBuffer(x, y) > z){
     		colorT[0] = 1; colorT[1] = 1; colorT[2] = 1;
 	    	colorF[0] = 1; colorF[1] = 1; colorF[2] = 1;
@@ -392,15 +387,14 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
     		
     		if (texture == 'Y'){    			
-    			px = (tx2/w*f + (1.0f-f)*tx1/w); //
-    			py = (ty2/w*f + (1.0f-f)*ty1/w); //
+    			px = (tx2/w*f + (1.0f-f)*tx1/w); 
+    			py = (ty2/w*f + (1.0f-f)*ty1/w); 
 
     			px = px*w;
     			py = py*w;	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
     			setColorTexture(px, py, w, textureType, colorT);
-
     		}     		
     		if (phongGL==2){    			
     			n[0] = n2[0]/w*f + (1.0f-f)*n1[0]/w;
@@ -440,9 +434,18 @@ void fillBottomFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec
   	float dy = v2[1] - v1[1];
 
   	float f = 0;
+  	float w1, z1;
+  	float w2, z2;
   	for (int scanlineY = v1[1]; scanlineY <= v2[1]; scanlineY++){
   		f = (scanlineY - v1[1])/dy;
-  		line((int)curx1, scanlineY, f*v2[2]+(1-f)*v1[2], f*v2[3]+(1-f)*v1[3], (int)curx2, scanlineY, f*v3[2]+(1-f)*v1[2], f*v3[3]+(1-f)*v1[3], 3, f*c2+(1-f)*c1, f*c3+(1-f)*c1, f*tx2+(1-f)*tx1, f*ty2+(1-f)*ty1, f*tx3+(1-f)*tx1, f*ty3+(1-f)*ty1);
+  		
+  		w1 = f*v2[3]+(1-f)*v1[3]; 
+  		z1 = f*(v2[2]*w1)+(1-f)*(v1[2]/w1);
+
+  		w2 = f*v3[3]+(1-f)*v1[3]; 
+  		z2 = f*(v3[2]/w2)+(1-f)*(v1[2]/w2);
+
+  		line((int)curx1, scanlineY, z1/(1/w1), w1, (int)curx2, scanlineY, z2/(1/w2), w2, (f*(c2/w1)+(1-f)*(c1/w1))/(1/w1), (f*(c3/w2)+(1-f)*(c1/w2))/(1/w2), (f*(tx2/w1)+(1-f)*(tx1/w1))/(1/w1), (f*(ty2/w1)+(1-f)*(ty1/w1))/(1/w1), (f*(tx3/w2)+(1-f)*(tx1/w2))/(1/w2), (f*(ty3/w2)+(1-f)*(ty1/w2))/(1/w2));
     	curx1 += invslope1;
     	curx2 += invslope2;
   	}
@@ -458,9 +461,16 @@ void fillTopFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c
   	float dy = v3[1] - v1[1];
 
   	float f = 0;
+  	float w1, z1;
+  	float w2, z2;
   	for (int scanlineY = v3[1]; scanlineY >= v1[1]; scanlineY--){
   		f = (scanlineY - v1[1])/dy;
-  		line((int)curx1, scanlineY, f*v3[2]+(1-f)*v1[2], f*v3[3]+(1-f)*v1[3], (int)curx2, scanlineY, f*v3[2]+(1-f)*v2[2], f*v3[3]+(1-f)*v2[3], 3, f*c2+(1-f)*c1, f*c3+(1-f)*c1, f*tx3+(1-f)*tx1, f*ty3+(1-f)*ty1, f*tx3+(1-f)*tx2, f*ty3+(1-f)*ty2);
+  		w1 = f*v3[3]+(1-f)*v1[3];
+  		z1 = f*(v3[2]/w1)+(1-f)*(v1[2]/w1);
+
+  		w2 = f*v3[3]+(1-f)*v2[3];
+  		z2 = f*(v3[2]/w2)+(1-f)*(v2[2]/w2);
+  		line((int)curx1, scanlineY, z1/(1/w1), w1, (int)curx2, scanlineY, z2/(1/w2), w2, (f*(c3/w1)+(1-f)*(c1/w1))/(1/w1), (f*(c3/w2)+(1-f)*(c2/w2))/(1/w2), (f*(tx3/w1)+(1-f)*(tx1/w1))/(1/w1), (f*(ty3/w1)+(1-f)*(ty1/w1))/(1/w1), (f*(tx3/w2)+(1-f)*(tx2/w2))/(1/w2), (f*(ty3/w2)+(1-f)*(ty2/w2))/(1/w2));
     	curx1 -= invslope1;
     	curx2 -= invslope2;
   	}
@@ -530,14 +540,6 @@ void raster(){
 			if (v2 > v3) { std::swap(u2, u3); std::swap(v2, v3); std::swap(n2, n3); std::swap(w2, w3); std::swap(color2, color3); std::swap(tx2, tx3); std::swap(ty2, ty3); }
 
 			drawTriangle(Vec4(u1, v1, n1, w1), color1, tx1, ty1, Vec4(u2, v2, n2, w2), color2, tx2, ty2, Vec4(u3, v3, n3, w3), color3, tx3, ty3);
-			//line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, 1-ty1, tx2, 1-ty2);
-			//line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, 1-ty1, tx3, 1-ty3);
-			
-			/*for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
-				for (unsigned int j = 0, jj=0, jjj = 0; j < listV1.size(); j+=4, jj+=3, jjj+=2){
-					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2]), listT0[iii], listT0[iii+1], listT1[jjj], listT1[jjj+1]); //color1, color2					
-				}
-			}*/
 		}else if (typeFormRender == 1) {		
 		//	line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
 			//line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);
