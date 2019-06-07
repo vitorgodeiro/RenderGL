@@ -1,10 +1,10 @@
 Object name = CUBE
 # triangles = 12
 Material count = 1
-ambient color 0.7 0.7 0.7
-diffuse color 0.5 0.5 0.5
-specular color 0.5 0.5 0.5
-material shine 10.0
+ambient color 0.694 0.580 0.459
+diffuse color 0.992 0.941 0.863
+specular color 1.000 1.000 1.000
+material shine 0.250
 Texture = YES
 -- 3*[pos(x,y,z) normal(x,y,z) color_index text_coord] face_normal(x,y,z)
 v0 -1.0 -1.0 -2.0 0.0 0.0 1.0 0 0.0 0.0

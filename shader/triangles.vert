@@ -49,7 +49,7 @@ subroutine (shadingType) vec3 phong() {
 // option 2
 subroutine (shadingType) vec3 goroud() { 
 
-vec3 norm = normalize(vNormal);
+	vec3 norm = normalize(vNormal);
     vec3 surfacePos = (vPosition);
 		
 	//ambient
