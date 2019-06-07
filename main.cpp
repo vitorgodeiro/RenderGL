@@ -71,6 +71,27 @@ Vec3 lightColor = Vec3(1.0, 1.0, 1.0);
 char texture = 'Y';
 
 unsigned char *data = stbi_load("model/mandrill_256.jpg", &w_, &h_, &nc_, 0); 
+unsigned char *data2 = new unsigned char[w_*h_*nc_/4];
+unsigned char *data3 = new unsigned char[w_*h_*nc_/16];
+unsigned char *data4 = new unsigned char[w_*h_*nc_/64];
+unsigned char *data5 = new unsigned char[w_*h_*nc_/256];
+unsigned char *data6 = new unsigned char[w_*h_*nc_/1024];
+
+int getPos(int x, int y, int w, int h){
+	return (w*y + x)*3;
+}
+
+void initMipMap(){
+	int posColor = 0;
+	for (int j = 0; j < h_; j++){
+		for (int i = 0; i < w_ ; i++){			
+			data2[posColor] = (data[getPos(i, j, w_, h_)] + data[getPos(i, j+1, w_, h_)] + data[getPos(i+1, j, w_, h_)] + data[getPos(i+1, j+1, w_, h_)])*0.25;
+			data2[posColor+1] = (data[getPos(i, j, w_, h_)+1] + data[getPos(i, j+1, w_, h_)+1] + data[getPos(i+1, j, w_, h_)+1] + data[getPos(i+1, j+1, w_, h_)]+1)*0.25;
+			data2[posColor+2] = (data[getPos(i, j, w_, h_)+2] + data[getPos(i, j+1, w_, h_)+2] + data[getPos(i+1, j, w_, h_)+2] + data[getPos(i+1, j+1, w_, h_)]+2)*0.25;
+			posColor++;
+		}
+	}
+}
 
 float step = 1.0f;
 float zNear, zFar;
