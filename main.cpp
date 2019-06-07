@@ -343,9 +343,6 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
 //Bresenham’s Line Drawing Algorithm
 void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2, float tx1, float ty1, float tx2, float ty2) { 
 	
-    bool steep = false; 
-    if (std::abs(x0 - x1) < std::abs(y0 - y1)) { std::swap(x0, y0); std::swap(x1, y1); steep = true; }
-
     if (x0 > x1) { 
     	std::swap(x0, x1); 
     	std::swap(y0, y1); 
@@ -357,20 +354,19 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 
     float dx = x1-x0; float dy = y1-y0; float dz = z1-z0; float dw = w1-w0;
 
-    float derror = 0; 
-    float error = 0; 
+
     int y = y0; 
     
     float derrorZ = 0;	
     float derrorW = 0;	
 
-    float errorZ = 0; 
+    
     float z = z0; 
+  	float w = w0;
+
   	float colorF[3] = {1, 1, 1};
   	float colorT[3] = {1, 1, 1};
   	double f;
-  	float errorW = 0;
-  	float w = w0;
 
 	Vec3 n;
 
@@ -378,7 +374,6 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     float py = 0;
 
   	if (dx != 0) {
-    	derror = std::abs(dy/float(dx)); 
     	derrorZ = std::abs(dz/float(dx)); 
     	derrorW = std::abs(dw/float(dx)); 
     }
@@ -388,50 +383,10 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     
     for (int x=x0; x<=x1; x++) { 
     	
-    	colorT[0] = 1;
-    	colorT[1] = 1;
-    	colorT[2] = 1;
-
-    	colorF[0] = 1;
-    	colorF[1] = 1;
-    	colorF[2] = 1;
-
-    	if (steep) { 
-    		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
-    		
-    		if (texture == 'Y'){
-    			px = (tx2/w*f + (1.0f-f)*tx1/w);
-    			py = (ty2/w*f + (1.0f-f)*ty1/w);
-    			px = px*w;
-    			py = py*w;
-    			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
-    			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			//setColorTexture(px, py, w, textureType, colorT);
-    		} 
-	    		
-	    	if (phongGL == 2){
-	    		n[0] = n2[0]/w*f + (1.0f-f)*n1[0]/w;
-		    	n[1] = n2[1]/w*f + (1.0f-f)*n1[1]/w;
-	    		n[2] = n2[2]/w*f + (1.0f-f)*n1[2]/w;
-	    			  			
-	    		n[0] = n[0]*w; n[1] = n[1]*w; n[2] = n[2]*w;
-	    		Vec3 c = shading(y, x, z, n[0], n[1], n[2]);	
-	    		colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];	
-	    	}else if (phongGL == 1 ){
-	    		colorF[0] = (color2[0]/w*f + (1.0f-f)*color1[0]/w);
-	    		colorF[1] = (color2[1]/w*f + (1.0f-f)*color1[1]/w);
-	    		colorF[2] = (color2[2]/w*f + (1.0f-f)*color1[2]/w);
-
-	    		colorF[0] = colorF[0]*w;
-	    		colorF[1] = colorF[1]*w;
-	    		colorF[2] = colorF[2]*w;
-	    	}
-	    	    		
-    		if (getZBuffer(y, x) > z){
-    			setColorBuffer(y, x, Vec4(std::pow((colorF[0]), 1.0/2.2)*colorT[0], std::pow(colorF[1], 1.0/2.2)*colorT[1], std::pow(colorF[2], 1.0/2.2)*colorT[2], 1.0f)); 
-    			setZBuffer(y, x, z);
-    		}
-    	} else { 
+    	if (getZBuffer(x, y) > z){
+    		colorT[0] = 1; colorT[1] = 1; colorT[2] = 1;
+	    	colorF[0] = 1; colorF[1] = 1; colorF[2] = 1;
+    	
     		if (x1==x0) {f = 0;} else {f = ((double(x-x0)/double(dx)));}
     		
     		if (texture == 'Y'){    			
@@ -444,108 +399,82 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			//setColorTexture(px, py, w, textureType, colorT);
 
     		}     		
-	    		if (phongGL==2){    			
-	    			n[0] = n2[0]/w*f + (1.0f-f)*n1[0]/w;
-		    		n[1] = n2[1]/w*f + (1.0f-f)*n1[1]/w;
-	    			n[2] = n2[2]/w*f + (1.0f-f)*n1[2]/w;
+    		if (phongGL==2){    			
+    			n[0] = n2[0]/w*f + (1.0f-f)*n1[0]/w;
+	    		n[1] = n2[1]/w*f + (1.0f-f)*n1[1]/w;
+    			n[2] = n2[2]/w*f + (1.0f-f)*n1[2]/w;
 
-	    			n[0] = n[0]*w; n[1] = n[1]*w; n[2] = n[2]*w;
-	    			Vec3 c = shading(x, y, z, n[0], n[1], n[2]);	
-	    			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];
-	    		}
-	    		else if (phongGL == 1 ){
-	    			colorF[0] = (color2[0]/w*f + (1.0f-f)*color1[0]/w);
-	    			colorF[1] = (color2[1]/w*f + (1.0f-f)*color1[1]/w);
-	    			colorF[2] = (color2[2]/w*f + (1.0f-f)*color1[2]/w);
+    			n[0] = n[0]*w; n[1] = n[1]*w; n[2] = n[2]*w;
+    			Vec3 c = shading(x, y, z, n[0], n[1], n[2]);	
+    			colorF[0] = c[0]; colorF[1] = c[1]; colorF[2] = c[2];
+    		}
+    		else if (phongGL == 1 ){
+    			colorF[0] = (color2[0]/w*f + (1.0f-f)*color1[0]/w);
+    			colorF[1] = (color2[1]/w*f + (1.0f-f)*color1[1]/w);
+    			colorF[2] = (color2[2]/w*f + (1.0f-f)*color1[2]/w);
 
-	    			colorF[0] = colorF[0]*w;
-	    			colorF[1] = colorF[1]*w;
-	    			colorF[2] = colorF[2]*w;
-	    		}
-	    	
-
-    		if (getZBuffer(x, y) > z){
-    			/*std::cout << colorF[0] << " " << colorF[1] << " " << colorF[2] << std::endl;
-    			std::cout << colorT[0] << " " << colorT[1] << " " << colorT[2] << std::endl;
-    			std::cout << "******************************" << std::endl;*/
-    			setColorBuffer(x, y, Vec4(std::pow((colorF[0]), 1.0/2.2)*colorT[0], std::pow(colorF[1], 1.0/2.2)*colorT[1], std::pow(colorF[2], 1.0/2.2)*colorT[2], 1.0f)); 
-    			setZBuffer(x, y, z);
-    		} 
-    	}    	   	
-
-    	if ( a == 0 ){
-    		if (steep){
-    			listV0.push_back(y);
-    			listV0.push_back(x);
-    			listV0.push_back(z);
-    			listV0.push_back(w);
-    			listT0.push_back(px);
-        		listT0.push_back(py);        		
-    		}else {
-        		listV0.push_back(x);
-        		listV0.push_back(y);
-        		listV0.push_back(z);
-        		listV0.push_back(w);
-        		listT0.push_back(px);
-        		listT0.push_back(py);
-        	}
-        	if (phongGL==2){
-        		colorsV0.push_back(n[0]);
-        		colorsV0.push_back(n[1]);
-        		colorsV0.push_back(n[2]);
-
-        	}else{
-        		colorsV0.push_back(colorF[0]);
-        		colorsV0.push_back(colorF[1]);
-        		colorsV0.push_back(colorF[2]);
-        	}
-
-        }else if (a == 1){
-        	if (steep){
-        		listV1.push_back(y);
-    			listV1.push_back(x);
-    			listV1.push_back(z);
-    			listV1.push_back(w);
-    			listT1.push_back(px);
-    			listT1.push_back(py);       		
-    		}else{
-        		listV1.push_back(x);
-        		listV1.push_back(y);
-        		listV1.push_back(z);
-        		listV1.push_back(w);
-        		listT1.push_back(px);
-        		listT1.push_back(py);
-        	}
-        	if (phongGL==2){
-        		colorsV1.push_back(n[0]);
-        		colorsV1.push_back(n[1]);
-        		colorsV1.push_back(n[2]);
-
-        	}else{
-        		colorsV1.push_back(colorF[0]);
-        		colorsV1.push_back(colorF[1]);
-        		colorsV1.push_back(colorF[2]);
-        	}
-        }  
-
-        error += derror; 
-        errorZ += derrorZ; 
-        errorW += derrorW; 
-        
-        if (error >= 0.5) { 
-        	y += (y1>y0?1:-1); 
-        	error -= 1.0f;       	
-        }
+    			colorF[0] = colorF[0]*w;
+    			colorF[1] = colorF[1]*w;
+    			colorF[2] = colorF[2]*w;
+    		}
+	    		
+    		setColorBuffer(x, y, Vec4(std::pow((colorF[0]), 1.0/2.2)*colorT[0], std::pow(colorF[1], 1.0/2.2)*colorT[1], std::pow(colorF[2], 1.0/2.2)*colorT[2], 1.0f)); 
+    		setZBuffer(x, y, z);
+    	} 
        	
-       	z += errorZ;
-       	errorZ = 0;
-       	w += errorW;
-       	errorW = 0;
+       	z += derrorZ;
+       	w += derrorW;
     } 	
 }
 
+void fillBottomFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c2, float tx2, float ty2, Vec4 v3, Vec3 c3, float tx3, float ty3){
+	float invslope1 = (v2[0] - v1[0]) / (v2[1] - v1[1]);
+  	float invslope2 = (v3[0] - v1[0]) / (v3[1] - v1[1]);
+
+  	float curx1 = v1[0];
+  	float curx2 = v1[0];
+
+  	float dy = v2[1] - v1[1];
+  	float f = 0;
+  	for (int scanlineY = v1[1]; scanlineY <= v2[1]; scanlineY++){
+  		f = (scanlineY - v1[1])/dy;
+  		line((int)curx1, scanlineY, v1[2], v1[3], (int)curx2, scanlineY, v2[2], v2[3], 3, c1, c2, tx1, 1-ty1, tx2, 1-ty2);
+    	curx1 += invslope1;
+    	curx2 += invslope2;
+  	}
+}
+
+void fillTopFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c2, float tx2, float ty2, Vec4 v3, Vec3 c3, float tx3, float ty3){
+	float invslope1 = (v3[0] - v1[0]) / (v3[1] - v1[1]);
+  	float invslope2 = (v3[0] - v2[0]) / (v3[1] - v2[1]);
+
+  	float curx1 = v3[0];
+  	float curx2 = v3[0];
+
+  	for (int scanlineY = v3[1]; scanlineY > v1[1]; scanlineY--){
+  		line((int)curx1, scanlineY, v1[2], v1[3], (int)curx2, scanlineY, v2[2], v2[3], 3, c1, c2, tx1, 1-ty1, tx2, 1-ty2);
+    	curx1 -= invslope1;
+    	curx2 -= invslope2;
+  	}
+}
+
+void drawTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c2, float tx2, float ty2, Vec4 v3, Vec3 c3, float tx3, float ty3){
+	if (v2[1] == v3[1]) {
+		fillBottomFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v3, c3, tx3, ty3);
+	} else if (v1[1] == v2[1]) {
+		fillTopFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v3, c3, tx3, ty3);
+	}else{
+		float t = (v2[1] - v1[1])/(v3[1]-v1[1]);
+		Vec4 v4 = v2;
+		v4[0] = v1[0] + t*(v3[0]-v1[0]);
+		fillBottomFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v4, c3, tx3, ty3);
+		fillTopFlatTriangle(v2, c2, tx2, ty2, v4, c2, tx2, ty2, v3, c2, tx2, ty2);
+		
+	}
+}
+
 void raster(){
-	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3, tx1, tx2, tx3, ty1, ty2, ty3;;
+	float u1, u2, u3, v1, v2, v3, n1, n2, n3, w1, w2, w3, tx1, tx2, tx3, ty1, ty2, ty3;
 	
 	for (unsigned int i = 0, j = 0, t = 0; i < vertexGL2.size(); i+=12, j+=9, t+=6){
 
@@ -590,14 +519,15 @@ void raster(){
 			if (v1 > v3) { std::swap(u1, u3); std::swap(v1, v3); std::swap(n1, n3); std::swap(w1, w3); std::swap(color1, color3); std::swap(tx1, tx3); std::swap(ty1, ty3); }
 			if (v2 > v3) { std::swap(u2, u3); std::swap(v2, v3); std::swap(n2, n3); std::swap(w2, w3); std::swap(color2, color3); std::swap(tx2, tx3); std::swap(ty2, ty3); }
 
-			line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, 1-ty1, tx2, 1-ty2);
-			line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, 1-ty1, tx3, 1-ty3);
+			drawTriangle(Vec4(u1, v1, n1, w1), color1, tx1, ty1, Vec4(u2, v2, n2, w2), color2, tx2, ty2, Vec4(u3, v3, n3, w3), color3, tx3, ty3);
+			//line(u1, v1, n1, w1, u2, v2, n2, w2, 0, color1, color2, tx1, 1-ty1, tx2, 1-ty2);
+			//line(u1, v1, n1, w1, u3, v3, n3, w3, 1, color1, color3, tx1, 1-ty1, tx3, 1-ty3);
 			
-			for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
+			/*for (unsigned int i = 0, ii = 0, iii = 0; i < listV0.size(); i+=4, ii+=3, iii+=2){
 				for (unsigned int j = 0, jj=0, jjj = 0; j < listV1.size(); j+=4, jj+=3, jjj+=2){
 					line(listV0[i], listV0[i + 1], listV0[i + 2], listV0[i + 3], listV1[j], listV1[j + 1], listV1[j+2], listV1[j + 3], 3, Vec3(colorsV0[ii], colorsV0[ii+1], colorsV0[ii+2]), Vec3(colorsV1[jj], colorsV1[jj+1], colorsV1[jj+2]), listT0[iii], listT0[iii+1], listT1[jjj], listT1[jjj+1]); //color1, color2					
 				}
-			}
+			}*/
 		}else if (typeFormRender == 1) {		
 		//	line(u1, v1, n1, w1, u2, v2, n2, w2, 3, color1, color2);
 			//line(u1, v1, n1, w1, u3, v3, n3, w3, 3, color1, color3);

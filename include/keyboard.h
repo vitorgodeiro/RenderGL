@@ -211,7 +211,10 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 				updateMVP();
 			}
 			
-			
+			if (closeGL){
+				glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &shadingNormalF);
+			}
 			updateMVP();
 			break;
 		}
