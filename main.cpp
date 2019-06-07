@@ -342,7 +342,9 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
 
 //Bresenham’s Line Drawing Algorithm
 void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, int a, Vec3 color1, Vec3 color2, float tx1, float ty1, float tx2, float ty2) { 
-	
+	ty1 = 1 - ty1;
+	ty2 = 1 - ty2;
+
     if (x0 > x1) { 
     	std::swap(x0, x1); 
     	std::swap(y0, y1); 
@@ -392,11 +394,12 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     		if (texture == 'Y'){    			
     			px = (tx2/w*f + (1.0f-f)*tx1/w); //
     			py = (ty2/w*f + (1.0f-f)*ty1/w); //
+
     			px = px*w;
     			py = py*w;	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			//setColorTexture(px, py, w, textureType, colorT);
+    			setColorTexture(px, py, w, textureType, colorT);
 
     		}     		
     		if (phongGL==2){    			
@@ -435,10 +438,11 @@ void fillBottomFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec
   	float curx2 = v1[0];
 
   	float dy = v2[1] - v1[1];
+
   	float f = 0;
   	for (int scanlineY = v1[1]; scanlineY <= v2[1]; scanlineY++){
   		f = (scanlineY - v1[1])/dy;
-  		line((int)curx1, scanlineY, v1[2], v1[3], (int)curx2, scanlineY, v2[2], v2[3], 3, c1, c2, tx1, 1-ty1, tx2, 1-ty2);
+  		line((int)curx1, scanlineY, f*v2[2]+(1-f)*v1[2], f*v2[3]+(1-f)*v1[3], (int)curx2, scanlineY, f*v3[2]+(1-f)*v1[2], f*v3[3]+(1-f)*v1[3], 3, f*c2+(1-f)*c1, f*c3+(1-f)*c1, f*tx2+(1-f)*tx1, f*ty2+(1-f)*ty1, f*tx3+(1-f)*tx1, f*ty3+(1-f)*ty1);
     	curx1 += invslope1;
     	curx2 += invslope2;
   	}
@@ -451,8 +455,12 @@ void fillTopFlatTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c
   	float curx1 = v3[0];
   	float curx2 = v3[0];
 
-  	for (int scanlineY = v3[1]; scanlineY > v1[1]; scanlineY--){
-  		line((int)curx1, scanlineY, v1[2], v1[3], (int)curx2, scanlineY, v2[2], v2[3], 3, c1, c2, tx1, 1-ty1, tx2, 1-ty2);
+  	float dy = v3[1] - v1[1];
+
+  	float f = 0;
+  	for (int scanlineY = v3[1]; scanlineY >= v1[1]; scanlineY--){
+  		f = (scanlineY - v1[1])/dy;
+  		line((int)curx1, scanlineY, f*v3[2]+(1-f)*v1[2], f*v3[3]+(1-f)*v1[3], (int)curx2, scanlineY, f*v3[2]+(1-f)*v2[2], f*v3[3]+(1-f)*v2[3], 3, f*c2+(1-f)*c1, f*c3+(1-f)*c1, f*tx3+(1-f)*tx1, f*ty3+(1-f)*ty1, f*tx3+(1-f)*tx2, f*ty3+(1-f)*ty2);
     	curx1 -= invslope1;
     	curx2 -= invslope2;
   	}
@@ -465,10 +473,12 @@ void drawTriangle(Vec4 v1, Vec3 c1, float tx1, float ty1, Vec4 v2, Vec3 c2, floa
 		fillTopFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v3, c3, tx3, ty3);
 	}else{
 		float t = (v2[1] - v1[1])/(v3[1]-v1[1]);
-		Vec4 v4 = v2;
-		v4[0] = v1[0] + t*(v3[0]-v1[0]);
-		fillBottomFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v4, c3, tx3, ty3);
-		fillTopFlatTriangle(v2, c2, tx2, ty2, v4, c2, tx2, ty2, v3, c2, tx2, ty2);
+		Vec4 v4 = v1 + t*(v3-v1);
+		Vec3 c4 = c1 + t*(c3-c1);
+		float tx4 = tx1 + t*(tx3-tx1);
+		float ty4 = ty1 + t*(ty3-ty1);
+		fillBottomFlatTriangle(v1, c1, tx1, ty1, v2, c2, tx2, ty2, v4, c4, tx4, ty4);
+		fillTopFlatTriangle(v2, c2, tx2, ty2, v4, c4, tx4, ty4, v3, c3, tx3, ty3);
 		
 	}
 }
