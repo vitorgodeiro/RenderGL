@@ -438,6 +438,7 @@ void setColorTexture(float px, float py, float w, int type, float *colorF, float
 		colorF[1] = (float) (c2/255.0f)/(1/w);
 		colorF[2] = (float) (c3/255.0f)/(1/w);
     }else if (type == 2){ //Mip-mapping Resampling  
+    	if (level > 1) level--;
     	int l1 = std::floor (level);
     	int l2 = l1+1;
     	float f = level - l1;
