@@ -83,6 +83,22 @@ void inputKeyboard(unsigned char key, int _x, int _y){
 			updateMVP();
 			break;
 		}
+		case 's':
+		case 'S':{
+			if (texture == 'Y'){
+				texture = 'N';
+				glUniform1i(uniTextGl, 0);
+				std::cout << "Texture = False" << std::endl;
+			}
+			else{
+				texture = 'Y';
+				glUniform1i(uniTextGl, 1);
+				std::cout << "Texture = Yes" << std::endl;
+			}
+			updateMVP();
+			break;
+
+		}
 		case 'p' :
 		case 'P' : 
 			//type = GL_POINTS;

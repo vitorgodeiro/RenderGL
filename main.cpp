@@ -29,6 +29,7 @@ GLint uniDiffuseColor;
 GLint uniSpecularColor;
 GLint uniMaterialShine ;
 GLint uniCloseGl;
+GLint uniTextGl;
 
 int checkShacder = 0;
 int textureType = 0;
@@ -495,8 +496,8 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 
     float max = (std::max(derrorTx/(1/w)*256, derrorTy/(1/w)*256));
     float level = 0;
-    if (max > 0.0f) {level = (std::log(max))/std::log(2) - 1;}
-    
+    level = (std::log(max))/std::log(2) - 1;
+    level = std::max(level, 0.0f);
     for (int x=x0; x<=x1; x++) {     	
     	if (getZBuffer(x, y) > z){
     		colorT[0] = 1; colorT[1] = 1; colorT[2] = 1;
@@ -756,6 +757,7 @@ void updateMVP(void){
     	glEnableVertexAttribArray(0);*/
 
     	glUniform1i(uniCloseGl, 1);
+
 		//glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &shadingNormal);
 
 	}else{
@@ -873,6 +875,8 @@ void init (std::string pathMesh){
 	uniView = glGetUniformLocation(program, "view");
 	uniMVP = glGetUniformLocation(program, "mvp");
 	uniCloseGl = glGetUniformLocation(program, "closeGL");
+	uniTextGl = glGetUniformLocation(program, "textGL");
+	glUniform1i(uniTextGl, 1);
 	updateMVP();
 		
 	glUniform3fv(uniColor, 1, color);

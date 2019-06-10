@@ -15,6 +15,9 @@ in vec3 vPosition_;
 in vec2 texCoord;
 in vec3 glColor;
 uniform sampler2D texture1;
+uniform int textGL;
+uniform int closeGL;
+
 
 
 layout (location = 0) out vec4 fColor;
@@ -54,5 +57,9 @@ subroutine uniform shadingType shading;
 
 
 void main() {
-    fColor = texture(texture1, texCoord)*shading();
+	if (textGL == 0 && closeGL == 0){
+    	fColor = shading();
+    } else {
+    	fColor = texture(texture1, texCoord)*shading();
+    }
 }
