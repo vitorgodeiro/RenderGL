@@ -58,6 +58,13 @@ int phongGL = 0;
 int width = 800;
 int height = 600;
 int w_, h_, nc_;
+int w1_, h1_, nc1_;
+int w2_, h2_, nc2_;
+int w3_, h3_, nc3_;
+int w4_, h4_, nc4_;
+int w5_, h5_, nc5_;
+
+
 
 int initialTime = time(NULL), finalTime, frameCount = 0, fps;
 int type = GL_TRIANGLES;
@@ -71,27 +78,11 @@ Vec3 lightColor = Vec3(1.0, 1.0, 1.0);
 char texture = 'Y';
 
 unsigned char *data = stbi_load("model/mandrill_256.jpg", &w_, &h_, &nc_, 0); 
-unsigned char *data2 = new unsigned char[w_*h_*nc_/4];
-unsigned char *data3 = new unsigned char[w_*h_*nc_/16];
-unsigned char *data4 = new unsigned char[w_*h_*nc_/64];
-unsigned char *data5 = new unsigned char[w_*h_*nc_/256];
-unsigned char *data6 = new unsigned char[w_*h_*nc_/1024];
-
-int getPos(int x, int y, int w, int h){
-	return (w*y + x)*3;
-}
-
-void initMipMap(){
-	int posColor = 0;
-	for (int j = 0; j < h_; j++){
-		for (int i = 0; i < w_ ; i++){			
-			data2[posColor] = (data[getPos(i, j, w_, h_)] + data[getPos(i, j+1, w_, h_)] + data[getPos(i+1, j, w_, h_)] + data[getPos(i+1, j+1, w_, h_)])*0.25;
-			data2[posColor+1] = (data[getPos(i, j, w_, h_)+1] + data[getPos(i, j+1, w_, h_)+1] + data[getPos(i+1, j, w_, h_)+1] + data[getPos(i+1, j+1, w_, h_)]+1)*0.25;
-			data2[posColor+2] = (data[getPos(i, j, w_, h_)+2] + data[getPos(i, j+1, w_, h_)+2] + data[getPos(i+1, j, w_, h_)+2] + data[getPos(i+1, j+1, w_, h_)]+2)*0.25;
-			posColor++;
-		}
-	}
-}
+unsigned char *data1 = stbi_load("model/mandrill_128.jpg", &w1_, &h1_, &nc1_, 0); 
+unsigned char *data2 = stbi_load("model/mandrill_64.jpg", &w2_, &h2_, &nc2_, 0); 
+unsigned char *data3 = stbi_load("model/mandrill_32.jpg", &w3_, &h3_, &nc3_, 0); 
+unsigned char *data4 = stbi_load("model/mandrill_16.jpg", &w4_, &h4_, &nc4_, 0); 
+unsigned char *data5 = stbi_load("model/mandrill_8.jpg", &w5_, &h5_, &nc5_, 0); 
 
 float step = 1.0f;
 float zNear, zFar;
@@ -328,8 +319,95 @@ void compute(float vertex[], Mat4GL m, Mat4GL v, Mat4GL p, int numtriangles, flo
 }
 
 
+void setColorMipMapping(float *colorF, int level, float px, float py, float w){
+    float c1, c2, c3;
+    switch (level){
+    	case 1: {
+    		float px_ = px*(h1_ - 1);
+    		float py_ = py*(w1_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
 
-void setColorTexture(float px, float py, float w, int type, float *colorF){
+    	 	c1 = ((1-u)*data1[(w1_*y + x)*3]/w + u*data1[(w1_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data1[(w1_*(y+1) + x)*3]/w + u*data1[(w1_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data1[(w1_*y + x)*3+1]/w + u*data1[(w1_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data1[(w1_*(y+1) + x)*3+1]/w + u*data1[(w1_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data1[(w1_*y + x)*3+2]/w + u*data1[(w1_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data1[(w1_*(y+1) + x)*3+2]/w + u*data1[(w1_*(y+1) + (x+1))*3+2]/w)*v;
+    		break;	
+    	}
+    	case 2: {
+    		float px_ = px*(h2_ - 1);
+    		float py_ = py*(w2_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
+
+    	 	c1 = ((1-u)*data2[(w2_*y + x)*3]/w + u*data2[(w2_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data2[(w2_*(y+1) + x)*3]/w + u*data2[(w2_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data2[(w2_*y + x)*3+1]/w + u*data2[(w2_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data2[(w2_*(y+1) + x)*3+1]/w + u*data2[(w2_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data2[(w2_*y + x)*3+2]/w + u*data2[(w2_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data2[(w2_*(y+1) + x)*3+2]/w + u*data2[(w2_*(y+1) + (x+1))*3+2]/w)*v;
+    		break;
+    	}
+    	case 3: {
+    		float px_ = px*(h3_ - 1);
+    		float py_ = py*(w3_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
+
+    	 	c1 = ((1-u)*data3[(w3_*y + x)*3]/w + u*data3[(w3_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data3[(w3_*(y+1) + x)*3]/w + u*data3[(w3_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data3[(w3_*y + x)*3+1]/w + u*data3[(w3_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data3[(w3_*(y+1) + x)*3+1]/w + u*data3[(w3_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data3[(w3_*y + x)*3+2]/w + u*data3[(w3_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data3[(w3_*(y+1) + x)*3+2]/w + u*data3[(w3_*(y+1) + (x+1))*3+2]/w)*v;
+    		break;
+    	}
+    	case 4: {
+    		float px_ = px*(h4_ - 1);
+    		float py_ = py*(w4_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
+
+    	 	c1 = ((1-u)*data4[(w4_*y + x)*3]/w + u*data4[(w4_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data4[(w4_*(y+1) + x)*3]/w + u*data4[(w4_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data4[(w4_*y + x)*3+1]/w + u*data4[(w4_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data4[(w4_*(y+1) + x)*3+1]/w + u*data4[(w4_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data4[(w4_*y + x)*3+2]/w + u*data4[(w4_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data4[(w4_*(y+1) + x)*3+2]/w + u*data4[(w4_*(y+1) + (x+1))*3+2]/w)*v;
+    		break;
+    	}
+    	case 5: {    		
+    		float px_ = px*(h5_ - 1);
+    		float py_ = py*(w5_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
+
+    	 	c1 = ((1-u)*data5[(w5_*y + x)*3]/w + u*data5[(w5_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data5[(w5_*(y+1) + x)*3]/w + u*data5[(w5_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data5[(w5_*y + x)*3+1]/w + u*data5[(w5_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data5[(w5_*(y+1) + x)*3+1]/w + u*data5[(w5_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data5[(w5_*y + x)*3+2]/w + u*data5[(w5_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data5[(w5_*(y+1) + x)*3+2]/w + u*data5[(w5_*(y+1) + (x+1))*3+2]/w)*v;
+    		break;
+    	}
+    	default:{
+    		float px_ = px*(h_ - 1);
+    		float py_ = py*(w_ - 1);
+    		int x = std::floor(px_);
+    		int y = std::floor(py_);
+    		float u = px_ - x;
+    		float v = py_ - y;
+
+    	 	c1 = ((1-u)*data[(w_*y + x)*3]/w + u*data[(w_*y + (x+1))*3]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3]/w + u*data[(w_*(y+1) + (x+1))*3]/w)*v;
+    	 	c2 = ((1-u)*data[(w_*y + x)*3+1]/w + u*data[(w_*y + (x+1))*3+1]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+1]/w + u*data[(w_*(y+1) + (x+1))*3+1]/w)*v;
+    	 	c3 = ((1-u)*data[(w_*y + x)*3+2]/w + u*data[(w_*y + (x+1))*3+2]/w)*(1-v) + ((1-u)*data[(w_*(y+1) + x)*3+2]/w + u*data[(w_*(y+1) + (x+1))*3+2]/w)*v;
+    	}
+    }
+
+    colorF[0] = (float) (c1/255.0f)/(1/w);
+	colorF[1] = (float) (c2/255.0f)/(1/w);
+	colorF[2] = (float) (c3/255.0f)/(1/w);
+
+}
+
+void setColorTexture(float px, float py, float w, int type, float *colorF, float level){
 	float px_; 
     float py_; 
     int pos; 
@@ -358,7 +436,18 @@ void setColorTexture(float px, float py, float w, int type, float *colorF){
     	colorF[0] = (float) (c1/255.0f)/(1/w);
 		colorF[1] = (float) (c2/255.0f)/(1/w);
 		colorF[2] = (float) (c3/255.0f)/(1/w);
-    }	
+    }else if (type == 2){ //Mip-mapping Resampling  
+    	int l1 = std::floor (level);
+    	int l2 = l1+1;
+    	float f = level - l1;
+    	float color1[3] = {0.0f, 0.0f, 0.0f};
+    	float color2[3] = {0.0f, 0.0f, 0.0f};
+    	setColorMipMapping(color1, l1, px, py, w);
+    	setColorMipMapping(color2, l2, px, py, w);
+    	colorF[0] = (color2[0]/w*f + (1.0f-f)*color1[0]/w)*w;
+    	colorF[1] = (color2[1]/w*f + (1.0f-f)*color1[1]/w)*w;
+    	colorF[2] = (color2[2]/w*f + (1.0f-f)*color1[2]/w)*w;
+    }
 }
 
 //Bresenham’s Line Drawing Algorithm
@@ -380,6 +469,8 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     
     float derrorZ = 0;	
     float derrorW = 0;
+    float derrorTx = 0;	
+    float derrorTy = 0;
     
     float z = z0; 
   	float w = w0;
@@ -392,13 +483,19 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
 	float px = 0;
     float py = 0;
 
-  	if (dx != 0) {
+  	if (dx != 0.0f) {
     	derrorZ = std::abs(dz/float(dx)); 
     	derrorW = std::abs(dw/float(dx)); 
+    	derrorTx = std::abs((tx2-tx1)/float(dx)); 
+    	derrorTy = std::abs((ty2-ty1)/float(dx));
     }
 
     Vec3 n1 = color1;
     Vec3 n2 = color2;
+
+    float max = (std::max(derrorTx/(1/w)*256, derrorTy/(1/w)*256));
+    float level = 0;
+    if (max > 0.0f) {level = (std::log(max))/std::log(2) - 1;}
     
     for (int x=x0; x<=x1; x++) {     	
     	if (getZBuffer(x, y) > z){
@@ -415,7 +512,7 @@ void line(float x0, float y0, float z0, float w0, float x1, float y1, float z1, 
     			py = py*w;	
     			if (px > 1.0f) {px = 1.0f;} else if (px < 0.0f){px = 0.0f;}
     			if (py > 1.0f) {py = 1.0f;} else if (py < 0.0f){py = 0.0f;}
-    			setColorTexture(px, py, w, textureType, colorT);
+    			setColorTexture(px, py, w, textureType, colorT, level);
     		}     		
     		if (phongGL==2){    			
     			n[0] = n2[0]/w*f + (1.0f-f)*n1[0]/w;
